@@ -25,9 +25,9 @@ sed -i'' 's/^check_LLVM_support$/#check_LLVM_support/g; s/^check_instrumentation
 grep "^exit 1 # TCT DBG$" $do_analysis_script || sed -i'' '/^extraHeaders=""$/iexit 1 # TCT DBG/' $do_analysis_script || error_exit "patch do-analysis 2 failed"
 
 # - patch on others 
-sed -i'' '2iexit 0' $shadow_data_dir/prepare-native-versions.sh || error_exit "patch failed nat"
-sed -i'' '2iexit 0' $shadow_data_dir/prepare-native-and-for-klee.sh || error_exit "patch failed prepare nat and klee"
-sed -i'' '2iexit 0' $shadow_data_dir/patch-covering-tcs.sh || error_exit "patch failed patch cov"
+head -n2 $shadow_data_dir/prepare-native-versions.sh | grep '^exit 0$' || sed -i'' '2iexit 0' $shadow_data_dir/prepare-native-versions.sh || error_exit "patch failed nat"
+head -n2 $shadow_data_dir/prepare-native-and-for-klee.sh | grep '^exit 0$' sed -i'' '2iexit 0' $shadow_data_dir/prepare-native-and-for-klee.sh || error_exit "patch failed prepare nat and klee"
+head -n2 $shadow_data_dir/patch-covering-tcs.sh | grep '^exit 0$' sed -i'' '2iexit 0' $shadow_data_dir/patch-covering-tcs.sh || error_exit "patch failed patch cov"
 
 # - apply patch on masters
 master_configure=$repos_topdir/master.configure.sh
