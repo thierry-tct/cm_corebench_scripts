@@ -9,7 +9,7 @@ error_exit() {
     exit 1
 }
 
-TOPDIR=$(dirname $(readlink $0))
+TOPDIR=$(dirname $(readlink -f $0))
 shadow_data_dir=$TOPDIR/../../shadow-test
 repos_topdir=$shadow_data_dir/coreutils
 
@@ -22,7 +22,7 @@ project_repo=$repos_topdir/$projid
 # - Apply patch on analysis
 do_analysis_script=$shadow_data_dir/do-analysis.sh
 sed -i'' 's/^check_LLVM_support$/#check_LLVM_support/g; s/^check_instrumentation$/#check_instrumentation/g' $do_analysis_script || error_exit "patch do-analysis failed"
-grep "^exit 1 # TCT DBG$" || sed -i'' '/^extraHeaders=""$/iexit 1 # TCT DBG/' $do_analysis_script || error_exit "patch do-analysis 2 failed"
+grep "^exit 1 # TCT DBG$" $do_analysis_script || sed -i'' '/^extraHeaders=""$/iexit 1 # TCT DBG/' $do_analysis_script || error_exit "patch do-analysis 2 failed"
 
 # - patch on others 
 sed -i'' '2iexit 0' $shadow_data_dir/prepare-native-versions.sh || error_exit "patch failed nat"
@@ -37,6 +37,7 @@ sed -i'' 's/^  exit 1$/#  exit 1/g' $master_configure
 sed -i'' 's/^  exit 1$/#  exit 1/g' $master_make
 
 # - prepare
+cd $shadow_data_dir
 bash $shadow_data_dir/$projid-patches/build-me.sh || error_exit "build-me failed"
 
 # - get the list of affected files and comment klee_change... headers
