@@ -34,6 +34,7 @@ master_configure=$repos_topdir/master.configure.sh
 master_make=$repos_topdir/master.make.sh
 
 sed -i'' 's/^  exit 1$/#  exit 1/g' $master_configure
+sed '67q;d' $master_configure | grep "\--skip-po" || sed -i'' '67s/.\/bootstrap/.\/bootstrap || .\/bootstrap --skip-po/g' $master_configure || error_exit "sed skip-po failed"
 sed -i'' 's/^  exit 1$/#  exit 1/g' $master_make
 
 # - prepare
@@ -59,3 +60,11 @@ cd $project_repo
 $master_configure || error_exit "master configure failed"
 $master_make || error_exit "master make failed"
 
+
+###########
+# Make sure that make check runs fine for any test script
+tmp_test_script="check_make_check.delete.tmp.sh"
+echo "#! /bin/bash" > $tmp_test_script
+echo "exit 0" > $tmp_test_script
+make check -i TESTS="$tmp_test_script" || error_exit "# PREPARE was fine but make check TESTS failed on test with any name"
+#~
