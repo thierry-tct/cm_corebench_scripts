@@ -22,12 +22,12 @@ project_repo=$repos_topdir/$projid
 # - Apply patch on analysis
 do_analysis_script=$shadow_data_dir/do-analysis.sh
 sed -i'' 's/^check_LLVM_support$/#check_LLVM_support/g; s/^check_instrumentation$/#check_instrumentation/g' $do_analysis_script || error_exit "patch do-analysis failed"
-grep "^exit 1 # TCT DBG$" $do_analysis_script || sed -i'' '/^extraHeaders=""$/iexit 1 # TCT DBG/' $do_analysis_script || error_exit "patch do-analysis 2 failed"
+grep "^exit 0 # TCT DBG$" $do_analysis_script || sed -i'' '/^extraHeaders=""$/iexit 0 # TCT DBG/' $do_analysis_script || error_exit "patch do-analysis 2 failed"
 
 # - patch on others 
 head -n2 $shadow_data_dir/prepare-native-versions.sh | grep '^exit 0$' || sed -i'' '2iexit 0' $shadow_data_dir/prepare-native-versions.sh || error_exit "patch failed nat"
-head -n2 $shadow_data_dir/prepare-native-and-for-klee.sh | grep '^exit 0$' sed -i'' '2iexit 0' $shadow_data_dir/prepare-native-and-for-klee.sh || error_exit "patch failed prepare nat and klee"
-head -n2 $shadow_data_dir/patch-covering-tcs.sh | grep '^exit 0$' sed -i'' '2iexit 0' $shadow_data_dir/patch-covering-tcs.sh || error_exit "patch failed patch cov"
+head -n2 $shadow_data_dir/prepare-native-and-for-klee.sh | grep '^exit 0$' || sed -i'' '2iexit 0' $shadow_data_dir/prepare-native-and-for-klee.sh || error_exit "patch failed prepare nat and klee"
+head -n2 $shadow_data_dir/patch-covering-tcs.sh | grep '^exit 0$' || sed -i'' '2iexit 0' $shadow_data_dir/patch-covering-tcs.sh || error_exit "patch failed patch cov"
 
 # - apply patch on masters
 master_configure=$repos_topdir/master.configure.sh
@@ -38,18 +38,20 @@ sed -i'' 's/^  exit 1$/#  exit 1/g' $master_make
 
 # - prepare
 cd $shadow_data_dir
+echo "@prepare: running build-me..."
 bash $shadow_data_dir/$projid-patches/build-me.sh || error_exit "build-me failed"
+echo "@prepare: running build-me done!"
 
 # - get the list of affected files and comment klee_change... headers
 affected_summary=$project_repo/klee_changed_src.summary
 test -f $affected_summary || error_exit "affected summary missing"
-for src in grep "\."
+for src in `grep "\." $affected_summary`
 do
-    sed -i'' 's|^#include "klee_change_macros.h"$|#include "instrument_wei.h" //#include "klee_change_macros.h"|g' $project_repo/$src || error_exit "failed to sed src; $src"
-    sed -i'' 's|^#include "klee_change_functions.h"$|#include "klee_change_functions.h"|g' $project_repo/$src || error_exit "failed to sed 2 src; $src"
+    sed -i'' 's|^#include "klee_change_macros.h"$|#include "instrument_wei.h" //#include "klee_change_macros.h"|g' $project_repo/$src || error_exit "failed to sed src: $src"
+    sed -i'' 's|^#include "klee_change_functions.h"$|//#include "klee_change_functions.h"|g' $project_repo/$src || error_exit "failed to sed 2 src; $src"
     
     # - copy instrument_wei to src folder
-    cp $TOPDIR/instrument_wei.h $repos_topdir/$(dirname $src)
+    cp $TOPDIR/instrument_wei.h $project_repo/$(dirname $src) || error_exit "cp failed on instrument_wei to src: $src"
 done
 
 # - run master.configure.sh and master.make.sh after patching their exit 1
