@@ -57,6 +57,7 @@ done
 
 # - run master.configure.sh and master.make.sh after patching their exit 1
 cd $project_repo
+cp $TOPDIR/build_project.sh . || error_exit "Failed to copy build_project"
 $master_configure || error_exit "master configure failed"
 $master_make || error_exit "master make failed"
 
@@ -65,6 +66,7 @@ $master_make || error_exit "master make failed"
 # Make sure that make check runs fine for any test script
 tmp_test_script="check_make_check.delete.tmp.sh"
 echo "#! /bin/bash" > $tmp_test_script
-echo "exit 0" > $tmp_test_script
-make check -i TESTS="$tmp_test_script" || error_exit "# PREPARE was fine but make check TESTS failed on test with any name"
+echo "exit 0" >> $tmp_test_script
+make check-TEST TESTS="$tmp_test_script" || error_exit "# PREPARE was fine but make check TESTS failed on test with any name"
+rm -rf $tmp_test_script
 #~

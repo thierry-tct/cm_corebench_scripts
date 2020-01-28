@@ -32,5 +32,6 @@ with open(os.path.join(workdir, "klee_symb_args.json")) as f:
 
 
 # TCT
-bypass_make_check_tests.compute_make_check_tests_env_vars(REPOSITORY_ROOT_DIR)
+#bypass_make_check_tests.compute_make_check_tests_env_vars(REPOSITORY_ROOT_DIR)
+bypass_make_check_tests.compute_make_check_tests_env_vars(REPOSITORY_ROOT_DIR, os.path.join(REPOSITORY_ROOT_DIR, 'tests', 'expr'))
 #~

@@ -124,9 +124,13 @@ def read_files_folder(fpath, suffix='.sh'):
 
 # Corebench
 def initdevtestlist_bench(test_folder):
+    global bashlist
+    global roottests
+    global test_alias_to_script
+
     alltests_file = os.path.join(test_folder, "splittests_all.txt")
     roottests_file = os.path.join(test_folder, "splittests_root.txt")
-    expensivetests_file = os.path.join(test_folder, "splittests_expensive.txt")
+    expensivetests_file = os.path.join(test_folder, "splittests_veryexpensive.txt")
     
     alltests = [v.strip() for v in open(alltests_file)]
     roottests = []
@@ -139,6 +143,19 @@ def initdevtestlist_bench(test_folder):
         alltests = list(set(alltests) - set(roottests))
     if not usingExpensiveTest:
         alltests = list(set(alltests) - set(expensivetests))
+	
+    for testcase in alltests:
+        rootlist[testcase] = (testcase in roottests)
+        d, f = os.path.split(testcase)
+        parts = f.split('_')
+        if len(parts) > 1:
+            assert parts[0].isdigit(), "split problem, first part not digit"
+            bashlist[testcase] = int(parts[0])
+            test_alias_to_script[testcase] = os.path.join(d, '_'.join(parts[1:]))
+        else:
+            bashlist[testcase] = None
+            test_alias_to_script[testcase] = testcase
+
     return alltests
 #~ def initdevtestlist_bench
 
@@ -154,7 +171,7 @@ import bypass_make_check_tests
 #~
 
 def dev_test_runner(test_name, repo_root_dir, *args, **kwargs):
-    global devtestlist
+    #global devtestlist
     global bashlist
     global rootlist
     cwd = os.getcwd()
