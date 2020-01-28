@@ -1,0 +1,11 @@
+{
+    "": [["--sym-args", "0", "1", "10"], ["--sym-args", "0", "2", "2"], ["--sym-files", "1", "8"], ["--sym-stdin", "8"], ["--sym-stdout"]],
+    "dd": [["--sym-args", "0", "3", "10"], ["--sym-files", "1", "8"], ["--sym-stdin", "8"], ["--sym-stdout"]],
+    "dircolors": [["--sym-args", "0", "3", "10"], ["--sym-files", "2", "12"], ["--sym-stdin", "12"], ["--sym-stdout"]],
+    "echo": [["--sym-args", "0", "4", "300"], ["--sym-files", "2", "30"], ["--sym-stdin", "30"], ["--sym-stdout"]],
+    "expr": [["--sym-args", "0", "1", "10"], ["--sym-args", "0", "3", "2"], ["--sym-stdout"]],
+    "mknod": [["--sym-args", "0", "1", "10"], ["--sym-args", "0", "3", "2"], ["--sym-files", "1", "8"], ["--sym-stdin", "8"], ["--sym-stdout"]],
+    "od": [["--sym-args", "0", "3", "10"], ["--sym-files", "2", "12"], ["--sym-stdin", "12"], ["--sym-stdout"]],
+    "pathchk": [["--sym-args", "0", "1", "2"], ["--sym-args", "0", "1", "300"], ["--sym-files", "1", "8"], ["--sym-stdin", "8"], ["--sym-stdout"]],
+    "printf": [["--sym-args", "0", "3", "10"], ["--sym-files", "2", "12"], ["--sym-stdin", "12"], ["--sym-stdout"]]
+}
