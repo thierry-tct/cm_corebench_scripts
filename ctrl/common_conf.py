@@ -204,7 +204,7 @@ def dev_test_runner(test_name, repo_root_dir, *args, **kwargs):
         test_script = os.path.normpath(os.path.join("..",'..',test_script))
         tests_rel_path = '..'
     else:
-        assert False, "invalid folder level"
+        assert run_devtest_folder_level_from_root[0] == 0, "invalid folder level"
 #        print('+++++++', os.getcwd(), test_script) #DBG
 
     kwargs['env_vars']["PATH"] = os.path.join(repo_root_dir, 'src')+":"+os.environ["PATH"]
