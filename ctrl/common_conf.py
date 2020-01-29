@@ -202,12 +202,12 @@ def dev_test_runner(test_name, repo_root_dir, *args, **kwargs):
             #TESTS_ENVIRONMENT...
         if rootlist[test_name]:
 #           print("SUDO ++++++++++")
-            retcode = system_test_runner('sudo', ['-E','bash',test_script ], (test_script if check_dev_testname_in_run[0] else None), repo_root_dir, *args, **kwargs)
+            retcode = system_test_runner('sudo', ['-E','bash',test_script ], (test_script if check_dev_testname_in_run[0] else None), repo_root_dir, *args, dbg_log_execution_out=False, **kwargs)
             #retcode = system_test_runner('sudo', ['-E', 'make','check', 'TESTS='+test_script, "SUBDIRS=.","VERBOSE=yes"], test_script, repo_root_dir, *args,
             #                             **kwargs)
             os.system("chmod 777 {}/src".format(repo_root_dir))
         else:
-            retcode = system_test_runner('bash', [test_script ], (test_script if check_dev_testname_in_run[0] else None), repo_root_dir, *args, **kwargs)
+            retcode = system_test_runner('bash', [test_script ], (test_script if check_dev_testname_in_run[0] else None), repo_root_dir, *args, dbg_log_execution_out=False, **kwargs)
     else:
         kwargs['env_vars']["srcdir"] = "tests"
         kwargs['env_vars']["PATH"] = os.path.join(os.getcwd(), 'src')+":"+os.environ["PATH"]

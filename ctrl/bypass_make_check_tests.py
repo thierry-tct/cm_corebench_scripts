@@ -19,7 +19,8 @@ make_check_test_env_keys = [
                 "host_triplet", "srcdir", "top_srcdir", "CONFIG_HEADER", \
                 #"CU_TEST_NAME", \
                 "CC", "AWK", "EGREP", "EXEEXT", "MAKE", "PACKAGE_VERSION", \
-                "PERL", "PREFERABLY_POSIX_SHELL"] 
+                "PERL", "PREFERABLY_POSIX_SHELL", \
+                "PROG"] 
 make_check_test_env_vars = None
 
 
