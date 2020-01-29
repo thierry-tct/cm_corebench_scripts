@@ -31,7 +31,8 @@ with open(os.path.join(workdir, "klee_symb_args.json")) as f:
       semu_sym_args.extend(coreutils_sym_args[coreutils_tool])
 
 
-check_dev_testname_in_run = config['check_dev_testname_in_run']
+check_dev_testname_in_run[0] = config['check_dev_testname_in_run']
+run_devtest_from_tests_folder[0] = config['run_devtest_from_tests_folder']
 
 # TCT
 #bypass_make_check_tests.compute_make_check_tests_env_vars(REPOSITORY_ROOT_DIR)

@@ -170,7 +170,8 @@ import bypass_make_check_tests
 #sys.path.pop(0)
 #~
 
-check_dev_testname_in_run = True
+check_dev_testname_in_run = [True]
+run_devtest_from_tests_folder = [False]
 
 def dev_test_runner(test_name, repo_root_dir, *args, **kwargs):
     #global devtestlist
@@ -193,17 +194,20 @@ def dev_test_runner(test_name, repo_root_dir, *args, **kwargs):
 
     kwargs['env_vars']["TEST_ID"] = str(bashlist[test_name])
     test_script = test_alias_to_script[test_name] 
+    if run_devtest_from_tests_folder[0]:
+        os.chdir('tests')
+        test_script = os.path.normpath(os.path.join("..",test_script))
     if test_name.endswith(".sh") or test_name.endswith(""):
 #           print('---- DBG', kwargs['env_vars']["TEST_ID"])
             #TESTS_ENVIRONMENT...
         if rootlist[test_name]:
 #           print("SUDO ++++++++++")
-            retcode = system_test_runner('sudo', ['-E','bash',test_script ], (test_script if check_dev_testname_in_run else None), repo_root_dir, *args, **kwargs)
+            retcode = system_test_runner('sudo', ['-E','bash',test_script ], (test_script if check_dev_testname_in_run[0] else None), repo_root_dir, *args, **kwargs)
             #retcode = system_test_runner('sudo', ['-E', 'make','check', 'TESTS='+test_script, "SUBDIRS=.","VERBOSE=yes"], test_script, repo_root_dir, *args,
             #                             **kwargs)
             os.system("chmod 777 {}/src".format(repo_root_dir))
         else:
-            retcode = system_test_runner('bash', [test_script ], (test_script if check_dev_testname_in_run else None), repo_root_dir, *args, **kwargs)
+            retcode = system_test_runner('bash', [test_script ], (test_script if check_dev_testname_in_run[0] else None), repo_root_dir, *args, **kwargs)
     else:
         kwargs['env_vars']["srcdir"] = "tests"
         kwargs['env_vars']["PATH"] = os.path.join(os.getcwd(), 'src')+":"+os.environ["PATH"]
