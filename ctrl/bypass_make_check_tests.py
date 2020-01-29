@@ -50,8 +50,8 @@ def compute_make_check_tests_env_vars(repo_make_check_test_dir, \
         if different_make_build_dir:
             os.chdir(different_make_build_dir)
         os.system('make')
-        if different_make_build_dir:
-            os.chdir(repo_make_check_test_dir)
+        #if different_make_build_dir:
+        #    os.chdir(repo_make_check_test_dir)
         os.system(test_cmd)
     os.chdir(cwd)
     assert os.path.isfile(tmp_getenv_hook_json), \
@@ -67,9 +67,11 @@ def compute_make_check_tests_env_vars(repo_make_check_test_dir, \
     
     # cleanup
     os.remove(tmp_getenv_hook_sh)
-    os.remove(tmp_getenv_hook+'.log')
-    os.remove(tmp_getenv_hook+'.trs')
     os.remove(tmp_getenv_hook_json)
+    if os.path.isfile(tmp_getenv_hook+'.log'):
+        os.remove(tmp_getenv_hook+'.log')
+    if os.path.isfile(tmp_getenv_hook+'.trs'):
+        os.remove(tmp_getenv_hook+'.trs')
 #~ def compute_make_check_tests_env_vars()
 
 def get_make_check_tests_env_vars():

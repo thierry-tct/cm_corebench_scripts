@@ -31,7 +31,14 @@ with open(os.path.join(workdir, "klee_symb_args.json")) as f:
       semu_sym_args.extend(coreutils_sym_args[coreutils_tool])
 
 
+check_dev_testname_in_run = config['check_dev_testname_in_run']
+
 # TCT
 #bypass_make_check_tests.compute_make_check_tests_env_vars(REPOSITORY_ROOT_DIR)
-bypass_make_check_tests.compute_make_check_tests_env_vars(REPOSITORY_ROOT_DIR, os.path.join(REPOSITORY_ROOT_DIR, 'tests', 'expr'))
+diff_make_build_dir = None
+if config['make_check_test_rel_path']:
+    diff_make_build_dir = os.path.join(REPOSITORY_ROOT_DIR, config['make_check_test_rel_path'])
+bypass_make_check_tests.compute_make_check_tests_env_vars(REPOSITORY_ROOT_DIR, diff_make_build_dir)
 #~
+
+HASH_OUTLOG=False
