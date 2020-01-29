@@ -50,7 +50,7 @@ def compute_make_check_tests_env_vars(repo_make_check_test_dir, \
     if not os.path.isfile(tmp_getenv_hook_json):
         if different_make_build_dir:
             os.chdir(different_make_build_dir)
-        os.system('make')
+        os.system('make || { ./configure && make ; }')
         #if different_make_build_dir:
         #    os.chdir(repo_make_check_test_dir)
         os.system(test_cmd)

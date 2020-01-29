@@ -67,6 +67,6 @@ $master_make || error_exit "master make failed"
 tmp_test_script="check_make_check.delete.tmp.sh"
 echo "#! /bin/bash" > $tmp_test_script
 echo "exit 0" >> $tmp_test_script
-make check-TEST TESTS="$tmp_test_script" || error_exit "# PREPARE was fine but make check TESTS failed on test with any name"
+make check-TEST TESTS="$tmp_test_script" || make check TESTS="$tmp_test_script" || error_exit "# PREPARE was fine but make check TESTS failed on test with any name"
 rm -rf $tmp_test_script
 #~
