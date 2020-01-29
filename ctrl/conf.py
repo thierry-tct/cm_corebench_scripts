@@ -32,7 +32,7 @@ with open(os.path.join(workdir, "klee_symb_args.json")) as f:
 
 
 check_dev_testname_in_run[0] = config['check_dev_testname_in_run']
-run_devtest_from_tests_folder[0] = config['run_devtest_from_tests_folder']
+run_devtest_folder_level_from_root[0] = int(config['run_devtest_folder_level_from_root'])
 
 # TCT
 #bypass_make_check_tests.compute_make_check_tests_env_vars(REPOSITORY_ROOT_DIR)

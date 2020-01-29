@@ -171,7 +171,7 @@ import bypass_make_check_tests
 #~
 
 check_dev_testname_in_run = [True]
-run_devtest_from_tests_folder = [False]
+run_devtest_folder_level_from_root = [0]
 
 def dev_test_runner(test_name, repo_root_dir, *args, **kwargs):
     #global devtestlist
@@ -194,9 +194,23 @@ def dev_test_runner(test_name, repo_root_dir, *args, **kwargs):
 
     kwargs['env_vars']["TEST_ID"] = str(bashlist[test_name])
     test_script = test_alias_to_script[test_name] 
-    if run_devtest_from_tests_folder[0]:
+    tests_rel_path = 'tests'
+    if run_devtest_folder_level_from_root[0] == 1:
         os.chdir('tests')
         test_script = os.path.normpath(os.path.join("..",test_script))
+        tests_rel_path = '.'
+    elif run_devtest_folder_level_from_root[0] == 2:
+        os.chdir(os.path.dirname(test_script))
+        test_script = os.path.normpath(os.path.join("..",'..',test_script))
+        tests_rel_path = '..'
+    else:
+        assert False, "invalid folder level"
+#        print('+++++++', os.getcwd(), test_script) #DBG
+
+    kwargs['env_vars']["PATH"] = os.path.join(repo_root_dir, 'src')+":"+os.environ["PATH"]
+    old_path = os.environ["PATH"]
+    os.environ["PATH"] =  os.path.join(repo_root_dir, 'src')+":"+os.environ["PATH"]
+
     if test_name.endswith(".sh") or test_name.endswith(""):
 #           print('---- DBG', kwargs['env_vars']["TEST_ID"])
             #TESTS_ENVIRONMENT...
@@ -209,14 +223,14 @@ def dev_test_runner(test_name, repo_root_dir, *args, **kwargs):
         else:
             retcode = system_test_runner('bash', [test_script ], (test_script if check_dev_testname_in_run[0] else None), repo_root_dir, *args, dbg_log_execution_out=False, **kwargs)
     else:
-        kwargs['env_vars']["srcdir"] = "tests"
-        kwargs['env_vars']["PATH"] = os.path.join(os.getcwd(), 'src')+":"+os.environ["PATH"]
-        os.environ["PATH"] =  os.path.join(os.getcwd(), 'src')+":"+os.environ["PATH"]
+        kwargs['env_vars']["srcdir"] = tests_rel_path
         #os.environ["TEST_ID"] = str(bashlist[test_script])
         #os.environ["srcdir"] ='src'
         #os.environ["PATH"] = os.path.join(os.getcwd(), 'src')+":"+os.environ["PATH"]
         #os.system(" ".join(['perl', "-w", "-I./tests", "-MCoreutils", "-MCuSkip", "-M\"CuTmpdir qw("+test_script+")\"", test_script]))
         retcode = system_test_runner('perl',[ "-w", "-I./tests", "-MCuSkip", "-MCoreutils", "-MCuTmpdir qw("+test_script+")", test_script], None, repo_root_dir, *args, dbg_log_execution_out=False, **kwargs)
+
+    os.environ["PATH"] = old_path
 
 
     os.chdir(cwd)
