@@ -211,7 +211,14 @@ def dev_test_runner(test_name, repo_root_dir, *args, **kwargs):
     old_path = os.environ["PATH"]
     os.environ["PATH"] =  os.path.join(repo_root_dir, 'src')+":"+os.environ["PATH"]
 
-    if test_name.endswith(".sh") or test_name.endswith(""):
+    if test_name.endswith(".pl") or test_name.endswith(".xpl"):
+        kwargs['env_vars']["srcdir"] = tests_rel_path
+        #os.environ["TEST_ID"] = str(bashlist[test_script])
+        #os.environ["srcdir"] ='src'
+        #os.environ["PATH"] = os.path.join(os.getcwd(), 'src')+":"+os.environ["PATH"]
+        #os.system(" ".join(['perl', "-w", "-I./tests", "-MCoreutils", "-MCuSkip", "-M\"CuTmpdir qw("+test_script+")\"", test_script]))
+        retcode = system_test_runner('perl',[ "-w", "-I./tests", "-MCuSkip", "-MCoreutils", "-MCuTmpdir qw("+test_script+")", test_script], None, repo_root_dir, *args, dbg_log_execution_out=False, **kwargs)
+    elif test_name.endswith(".sh") or test_name.endswith(""):
 #           print('---- DBG', kwargs['env_vars']["TEST_ID"])
             #TESTS_ENVIRONMENT...
         if rootlist[test_name]:
@@ -222,13 +229,7 @@ def dev_test_runner(test_name, repo_root_dir, *args, **kwargs):
             os.system("chmod 777 {}/src".format(repo_root_dir))
         else:
             retcode = system_test_runner('bash', [test_script ], (test_script if check_dev_testname_in_run[0] else None), repo_root_dir, *args, dbg_log_execution_out=False, **kwargs)
-    else:
-        kwargs['env_vars']["srcdir"] = tests_rel_path
-        #os.environ["TEST_ID"] = str(bashlist[test_script])
-        #os.environ["srcdir"] ='src'
-        #os.environ["PATH"] = os.path.join(os.getcwd(), 'src')+":"+os.environ["PATH"]
-        #os.system(" ".join(['perl', "-w", "-I./tests", "-MCoreutils", "-MCuSkip", "-M\"CuTmpdir qw("+test_script+")\"", test_script]))
-        retcode = system_test_runner('perl',[ "-w", "-I./tests", "-MCuSkip", "-MCoreutils", "-MCuTmpdir qw("+test_script+")", test_script], None, repo_root_dir, *args, dbg_log_execution_out=False, **kwargs)
+
 
     os.environ["PATH"] = old_path
 

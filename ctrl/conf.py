@@ -42,4 +42,5 @@ if config['make_check_test_rel_path']:
 bypass_make_check_tests.compute_make_check_tests_env_vars(REPOSITORY_ROOT_DIR, diff_make_build_dir)
 #~
 
-HASH_OUTLOG=False
+if config['id'] == 'cr-22':
+    HASH_OUTLOG=False

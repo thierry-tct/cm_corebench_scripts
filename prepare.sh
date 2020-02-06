@@ -13,7 +13,19 @@ TOPDIR=$(dirname $(readlink -f $0))
 shadow_data_dir=$TOPDIR/../../shadow-test
 repos_topdir=$shadow_data_dir/coreutils
 
+[ $# -eq 1 -o $# -eq 2 ] || error_exit "Prepare takes one or 2 args. passed $#!"
 projid=$1
+if [ $# -eq 2 ]; then
+    [ "$2" = 'docker' ] || error_exit "second argument must be 'docker'"
+    # rerun this script within docker
+    echo "RUNNING IN DOCKER ..."
+    mount_dir=$(readlink -f $TOPDIR/../..)
+    rel_dirname_from_mount="$(basename $(dirname $TOPDIR))/$(basename $TOPDIR)"
+    docker_image_name="maweimarvin/cm"
+    sudo docker run -it --rm --cap-add=SYS_PTRACE --security-opt seccomp=unconfined --mount type=bind,src=$mount_dir,dst=/work --user 1000:1000 --privileged \
+                                                                         $docker_image_name bash -c "cd /work/$rel_dirname_from_mount && bash ./$(basename $0) $projid"    
+    exit
+fi
 
 project_repo=$repos_topdir/$projid
 
