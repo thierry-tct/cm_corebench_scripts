@@ -217,7 +217,7 @@ def dev_test_runner(test_name, repo_root_dir, *args, **kwargs):
         #os.environ["srcdir"] ='src'
         #os.environ["PATH"] = os.path.join(os.getcwd(), 'src')+":"+os.environ["PATH"]
         #os.system(" ".join(['perl', "-w", "-I./tests", "-MCoreutils", "-MCuSkip", "-M\"CuTmpdir qw("+test_script+")\"", test_script]))
-        retcode = system_test_runner('perl',[ "-w", "-I./tests", "-MCuSkip", "-MCoreutils", "-MCuTmpdir qw("+test_script+")", test_script], None, repo_root_dir, *args, dbg_log_execution_out=False, **kwargs)
+        retcode = system_test_runner('perl',[ "-w", "-I./"+tests_rel_path, "-MCuSkip", "-MCoreutils", "-MCuTmpdir qw("+test_script+")", test_script], None, repo_root_dir, *args, dbg_log_execution_out=False, **kwargs)
     elif test_name.endswith(".sh") or test_name.endswith(""):
 #           print('---- DBG', kwargs['env_vars']["TEST_ID"])
             #TESTS_ENVIRONMENT...
