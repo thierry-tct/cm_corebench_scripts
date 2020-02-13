@@ -52,7 +52,12 @@ sed -i'' 's/^  exit 1$/#  exit 1/g' $master_make
 # - prepare
 cd $shadow_data_dir
 echo "@prepare: running build-me..."
-bash $shadow_data_dir/$projid-patches/build-me.sh || error_exit "build-me failed"
+if ! bash $shadow_data_dir/$projid-patches/build-me.sh
+then
+	grep '^git config --global user.email "you@domain.com"$' || \
+					sed -i'' '2igit config --global user.email "you@domain.com"\ngit config --global user.name "github_username"' $shadow_data_dir/$projid-patches/prepare.sh
+	bash $shadow_data_dir/$projid-patches/build-me.sh || error_exit "build-me failed"
+fi
 echo "@prepare: running build-me done!"
 
 # - get the list of affected files and comment klee_change... headers
