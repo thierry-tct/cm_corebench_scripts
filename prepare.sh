@@ -34,7 +34,7 @@ project_repo=$repos_topdir/$projid
 # - Apply patch on analysis
 do_analysis_script=$shadow_data_dir/do-analysis.sh
 sed -i'' 's/^check_LLVM_support$/#check_LLVM_support/g; s/^check_instrumentation$/#check_instrumentation/g' $do_analysis_script || error_exit "patch do-analysis failed"
-grep "^exit 0 # TCT DBG$" $do_analysis_script || sed -i'' '/^extraHeaders=""$/iexit 0 # TCT DBG/' $do_analysis_script || error_exit "patch do-analysis 2 failed"
+grep "^exit 0 # TCT DBG$" $do_analysis_script || sed -i'' '/^extraHeaders=""$/iexit 0 # TCT DBG' $do_analysis_script || error_exit "patch do-analysis 2 failed"
 
 # - patch on others 
 head -n2 $shadow_data_dir/prepare-native-versions.sh | grep '^exit 0$' || sed -i'' '2iexit 0' $shadow_data_dir/prepare-native-versions.sh || error_exit "patch failed nat"
