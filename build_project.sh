@@ -45,7 +45,8 @@ disable_test_framework_check()
 #./bootstrap
 if [ $1 -eq 1 ]; then
 	./configure  --disable-gcc-warnings  --disable-nls --disable-selinux LDFLAGS="-Wl,--no-as-needed,-ldl"
-	if [ "$(basename $(pwd))" = "ar-4-1" ] then
+	if [ "$(basename $(pwd))" = "ar-4-1" ] 
+	then
 		test -f lib/xsize.h || cp intl/xsize.h lib/xsize.h
 		echo "all: ;" > doc/Makefile
 	fi
