@@ -30,7 +30,6 @@ ar-2  -- NEW
 PREPARE OK
 ----------
 cr-10
-ar-4-1  -- TODO: split tests (like cr-12)
 
 
 
@@ -42,6 +41,7 @@ cr-3
 ar-5
 cr-11
 cr-12 (== cr-17)
+ar-4-1
 cr-5 (== cr-16)   -- VM
 cr-8   -- VM
 cr-4   -- VM
