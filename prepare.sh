@@ -82,7 +82,6 @@ if [ "$projid" = 'ar-4-1' ]; then
 	test -f lib/xsize.h || cp intl/xsize.h lib/xsize.h
 	echo "all: ;" > doc/Makefile
 elif [ "$projid" = 'cr-15' -o "$projid" = 'cr-1' -o "$projid" = 'ar-2' ]; then
-then
 	echo "all: ;" > doc/Makefile
 fi
 $master_make gcc || error_exit "master make failed"
