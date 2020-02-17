@@ -11,9 +11,6 @@ cr-12 == cr-17
 
 PREPARE FAILS
 -------------
-ar-2  -- make fails
-cr-15  -- make fails
-cr-1  -- make fails
 cr-7  -- make fails
 cr-9 -- make fails
 
@@ -24,6 +21,9 @@ PREPARE MAKE CKECK FAILS
 ------------------------
 cr-13
 cr-14
+cr-15  -- NEW
+cr-1  -- NEW
+ar-2  -- NEW
 
 
 ===============================================================

@@ -79,6 +79,8 @@ $master_configure || error_exit "master configure failed"
 if [ $projid = 'ar-4-1' ]; then
 	test -f lib/xsize.h || cp intl/xsize.h lib/xsize.h
 	echo "all: ;" > doc/Makefile
+if [ $projid = 'cr-15' -o $projid = 'cr-1' -o $projid = 'ar-2' ]; then
+	echo "all: ;" > doc/Makefile
 fi
 $master_make gcc || error_exit "master make failed"
 
