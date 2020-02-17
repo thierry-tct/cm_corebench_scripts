@@ -54,8 +54,10 @@ cd $shadow_data_dir
 echo "@prepare: running build-me..."
 if ! bash $shadow_data_dir/$projid-patches/build-me.sh
 then
-	grep '^git config --global user.email "you@domain.com"$' || \
-					sed -i'' '2igit config --global user.email "you@domain.com"\ngit config --global user.name "github_username"' $shadow_data_dir/$projid-patches/prepare.sh
+	echo "Fixing git email and user"
+	grep '^git config --global user.email "you@domain.com"$' $shadow_data_dir/$projid-patches/prepare.sh || \
+					sed -i'' '2igit config --global user.email "you@domain.com"\ngit config --global user.name "github_username"' $shadow_data_dir/$projid-patches/prepare.sh || \
+					error_exit "failed to add email and user for git"
 	bash $shadow_data_dir/$projid-patches/build-me.sh || error_exit "build-me failed"
 fi
 echo "@prepare: running build-me done!"
