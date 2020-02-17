@@ -50,6 +50,7 @@ if [ $1 -eq 1 ]; then
 		test -f lib/xsize.h || cp intl/xsize.h lib/xsize.h
 		echo "all: ;" > doc/Makefile
 	elif [ "$(basename $(pwd))" = "cr-15" -o "$(basename $(pwd))" = "cr-1" -o "$(basename $(pwd))" = "ar-2" ] 
+	then
 		echo "all: ;" > doc/Makefile
 	fi
 	#echo "all: ;" > doc/Makefile
