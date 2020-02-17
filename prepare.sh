@@ -79,7 +79,7 @@ cd $project_repo
 cp $TOPDIR/build_project.sh . || error_exit "Failed to copy build_project"
 $master_configure || error_exit "master configure failed"
 if [ "$projid" = 'ar-4-1' ]; then
-	test -f lib/xsize.h || cp intl/xsize.h lib/xsize.h
+	test -f lib/xsize.h || cp intl/xsize.h lib/xsize.h || cp ../cache-gnulib-ar-4-1/lib/xsize.h lib/xsize.h || error_exit "failed to fix xsize.h issue"
 	echo "all: ;" > doc/Makefile
 elif [ "$projid" = 'cr-15' -o "$projid" = 'cr-1' -o "$projid" = 'ar-2' ]; then
 	echo "all: ;" > doc/Makefile
