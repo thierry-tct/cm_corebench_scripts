@@ -51,6 +51,7 @@ sed -i'' 's/^  exit 1$/#  exit 1/g' $master_make
 
 # - prepare
 cd $shadow_data_dir
+$do_analysis_script 2 coreutils $projid || error_exit "do analysis failed"
 echo "@prepare: running build-me..."
 if ! bash $shadow_data_dir/$projid-patches/build-me.sh
 then
