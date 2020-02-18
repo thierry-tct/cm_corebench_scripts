@@ -49,6 +49,9 @@ if [ $1 -eq 1 ]; then
 	then
 		test -f lib/xsize.h || cp intl/xsize.h lib/xsize.h || cp ../cache-gnulib-ar-4-1/lib/xsize.h lib/xsize.h || error_exit "failed to fix xsize.h issue"
 		echo "all: ;" > doc/Makefile
+	elif [ "$projid" = 'cr-7' ]
+	then
+		grep 'lib/gperf' lib/gnulib.mk && sed -i'' 's|lib/gperf|gperf|g' lib/gnulib.mk
 	elif [ "$(basename $(pwd))" = "cr-15" -o "$(basename $(pwd))" = "cr-1" -o "$(basename $(pwd))" = "ar-2" ] 
 	then
 		echo "all: ;" > doc/Makefile
