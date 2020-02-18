@@ -11,7 +11,6 @@ cr-12 == cr-17
 
 PREPARE FAILS
 -------------
-cr-7  -- make fails
 cr-9 -- make fails
 
 
@@ -29,6 +28,7 @@ cr-1  -- NEW
 PREPARE OK
 ----------
 cr-10
+cr-7
 
 
 
