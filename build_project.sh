@@ -44,6 +44,10 @@ disable_test_framework_check()
 #compile projects
 #./bootstrap
 if [ $1 -eq 1 ]; then
+	if [ "$(basename $(pwd))" = "ar-4-1" ] 
+	then
+		make distclean
+	fi
 	./configure  --disable-gcc-warnings  --disable-nls --disable-selinux LDFLAGS="-Wl,--no-as-needed,-ldl"
 	if [ "$(basename $(pwd))" = "ar-4-1" ] 
 	then
