@@ -34,7 +34,8 @@ echo '
 set -u
 
 #export COREUTILS_TEST_EXPENSIVE=off
-export COREUTILS_TEST_ROOT=on
+#export COREUTILS_TEST_ROOT=on
+export COREUTILS_TEST_ROOT=1
 
 TOPDIR=$(dirname $(readlink -f $0))
 conf_py=$TOPDIR/ctrl/conf.py
