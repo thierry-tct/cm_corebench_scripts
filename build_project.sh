@@ -47,6 +47,13 @@ if [ $1 -eq 1 ]; then
 	if [ "$(basename $(pwd))" = "ar-4-1" ] 
 	then
 		make distclean
+	elif [ "$(basename $(pwd))" = "cr-1" ] 
+	then
+		using_clang=0
+		if [ "$CC" = 'wllvm' ]; then 
+			export CC=gcc
+			using_clang=1
+		fi
 	fi
 	./configure  --disable-gcc-warnings  --disable-nls --disable-selinux LDFLAGS="-Wl,--no-as-needed,-ldl"
 	if [ "$(basename $(pwd))" = "ar-4-1" ] 
@@ -56,9 +63,18 @@ if [ $1 -eq 1 ]; then
 	elif [ "$(basename $(pwd))" = 'cr-7' ]
 	then
 		grep 'lib/gperf' lib/gnulib.mk && sed -i'' 's|lib/gperf|gperf|g' lib/gnulib.mk
-	elif [ "$(basename $(pwd))" = "cr-15" -o "$(basename $(pwd))" = "cr-1" -o "$(basename $(pwd))" = "ar-2" ] 
+	elif [ "$(basename $(pwd))" = "cr-15" -o "$(basename $(pwd))" = "ar-2" ] 
 	then
 		echo "all: ;" > doc/Makefile
+	elif [ "$(basename $(pwd))" = "cr-1" ] 
+	then
+		echo "all: ;" > doc/Makefile
+		if [ $using_clang -eq 1 ]; then
+			export CC=wllvm
+			sed -i'' 's/ gcc / wllvm /g' Makefile || error_exit "sed failed 1"
+			sed -i'' 's/ gcc / wllvm /g' src/Makefile || error_exit "sed failed 2"
+			sed -i'' 's/ gcc / wllvm /g' lib/Makefile || error_exit "sed failed 3"
+		fi
 	fi
 	#echo "all: ;" > doc/Makefile
 	#echo "all: ;" > po/Makefile
