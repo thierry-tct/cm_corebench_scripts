@@ -50,7 +50,7 @@ if [ $1 -eq 1 ]; then
 	elif [ "$(basename $(pwd))" = "cr-1" ] 
 	then
 		using_clang=0
-		if [ "$CC" = 'wllvm' ]; then 
+		if [ "${CC:-}" = 'wllvm' ]; then 
 			export CC=gcc
 			using_clang=1
 		fi
