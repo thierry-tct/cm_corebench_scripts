@@ -388,7 +388,7 @@ CRITERIA_WITH_OUTPUT_SUMMARY = [
 ]
 
 gnucov = CriteriaToolsConfig(tooltype=CriteriaToolType.USE_ONLY_CODE, toolname='gcov', config_id=0)
-mart = CriteriaToolsConfig(tooltype=CriteriaToolType.USE_ONLY_CODE, toolname='mart', tool_user_custom=ToolUserCustom(POST_TARGET_CMD_ORDERED_FLAGS_LIST=[('-linking-flags', '-lattr') ])  ,config_id=0)
+mart = CriteriaToolsConfig(tooltype=CriteriaToolType.USE_ONLY_CODE, toolname='mart', tool_user_custom=ToolUserCustom(POST_TARGET_CMD_ORDERED_FLAGS_LIST=[('-linking-flags', '-lattr -lcap') ])  ,config_id=0)
 CRITERIA_TOOLS_CONFIGS_BY_CRITERIA = {}
 CRITERIA_TOOLS_CONFIGS_BY_CRITERIA[TestCriteria.STATEMENT_COVERAGE] = [gnucov]
 CRITERIA_TOOLS_CONFIGS_BY_CRITERIA[TestCriteria.BRANCH_COVERAGE] = [gnucov]
