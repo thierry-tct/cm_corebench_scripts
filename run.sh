@@ -42,6 +42,14 @@ conf_py=$TOPDIR/ctrl/conf.py
 mut_out=$TOPDIR/ctrl/output
 collect=$TOPDIR/res
 
+# Fix cr-1
+p_id=$(basename $(pwd))
+if [ "$p_id" = "cr-1" ]; then
+    cd $TOPDIR/../../../shadow-test/coreutils/$p_id
+    ./build_project.sh 1 1
+    cd -
+fi
+
 runner=/home/cmtools/run.sh
 
 $runner $conf_py $mut_out $collect
