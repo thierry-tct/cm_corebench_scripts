@@ -44,6 +44,11 @@ collect=$TOPDIR/res
 
 runner=/home/cmtools/run.sh
 
+# rm PB, rebuild
+#cd $TOPDIR/../../../shadow-test/coreutils/$(basename $(pwd))/
+#make || CFLAGS="-I/usr/local/lib/python3.6/dist-packages/muteria/drivers/testgeneration/tools_by_languages/c/shadow_se -DUSING_MUTERIA" ./build_project.sh 0 1
+#cd -
+
 $runner $conf_py $mut_out $collect
 
 exit $?
