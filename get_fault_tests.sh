@@ -40,6 +40,8 @@ error_exit()
     exit 1
 }
 
+pip install -U muteria
+
 #export COREUTILS_TEST_EXPENSIVE=off
 #export COREUTILS_TEST_ROOT=on
 export COREUTILS_TEST_ROOT=1
