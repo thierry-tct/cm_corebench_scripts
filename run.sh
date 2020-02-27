@@ -65,7 +65,7 @@ sudo docker run -it --rm --cap-add=SYS_PTRACE --security-opt seccomp=unconfined 
 									 --cpus=${CPU} maweimarvin/cm bash -c "cd /work/executions/workspace/$id && bash ./${tmpcmd}"
 
 # Copy info about changed lines
-test -f $workspace_dir/klee_changed_src.summary || cp $mountfold/shadow-test/coreutils/$id/klee_changed_src.summary $workspace_dir/klee_changed_src.summary \
+test -f $workspace_dir/res/klee_changed_src.summary || cp $mountfold/shadow-test/coreutils/$id/klee_changed_src.summary $workspace_dir/res/klee_changed_src.summary \
 															|| error_exit "failed to copy change lines summary"
 
 rm $in_docker_script || error_exit "failed to remove in_docker_script"
