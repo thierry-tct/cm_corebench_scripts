@@ -52,7 +52,7 @@ collect=$TOPDIR/res
 pass_fail_matrix=$collect/post/RESULTS_DATA/matrices/PASSFAIL.csv
 
 p_id=$(basename $TOPDIR)
-exe_dir=bug_fixing_exes/$p_id
+exe_dir=/work/executions/cm_corebench_scripts/bug_fixing_exes/$p_id
 exe_file=$(ls $exe_dir/old)
 
 if test -f $exe_dir/alias;
@@ -73,13 +73,13 @@ test_list_file=$TOPDIR/test_list.tmp
 cat $pass_fail_matrix | head -n1 | tr " " "\n" | sed 1d > $test_list_file || error_exit "failed to get testlist"
 
 custom_exe=$exe_dir/old/$exe_file
-echo"tests
+echo "tests
 $fail_test_execution/old
 {\"src/$(basename $custom_exe)\": \"$custom_exe\"}
 $test_list_file" | muteria --config $conf_py --lang c customexec || error_exit "run failed"
 
 custom_exe=$exe_dir/new/$exe_file
-echo"tests
+echo "tests
 $fail_test_execution/new
 {\"src/$(basename $custom_exe)\": \"$custom_exe\"}
 $test_list_file" | muteria --config $conf_py --lang c customexec || error_exit "run failed"
