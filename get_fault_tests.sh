@@ -87,16 +87,16 @@ $test_list_file" | muteria --config $conf_py --lang c customexec || error_exit "
 rm -f $test_list_file
 
 echo "import muteria.common.fs as common_matrices" > $test_list_file
-echo "_, old_o = common_matrices.OutputLogData($fail_test_execution/old/program_output.json).get_zip_objective_and_data()" >> $test_list_file
-echo " _, new_o = common_matrices.OutputLogData($fail_test_execution/new/program_output.json).get_zip_objective_and_data()" >> $test_list_file
+echo "_, old_o = common_matrices.OutputLogData(\"$fail_test_execution/old/program_output.json\").get_zip_objective_and_data()" >> $test_list_file
+echo " _, new_o = common_matrices.OutputLogData(\$fail_test_execution/new/program_output.json\").get_zip_objective_and_data()" >> $test_list_file
 echo "assert len(old_o) == len(new_o)" >> $test_list_file
 echo "diff_tests = []" >> $test_list_file
 echo "for tc in old_o:" >> $test_list_file
 echo "    eq = common_matrices.OutputLogData.outlogdata_equiv(old_o[tc], new_o[tc]):" >> $test_list_file
-echo "    assert eq i not None, "PB"" >> $test_list_file
+echo "    assert eq i not None, \"PB\"" >> $test_list_file
 echo "    if not eq:" >> $test_list_file
 echo "        diff_tests.append(tc)" >> $test_list_file
-echo "with open($bug_finding_tests_list, \"w\") as f:" >> $test_list_file
+echo "with open(\"$bug_finding_tests_list\", \"w\") as f:" >> $test_list_file
 echo "    for tc in diff_tests:" >> $test_list_file
 echo "        f.write(tc+\"\n\")" >> $test_list_file
 echo "print(\"# list printed\")" >> $test_list_file
