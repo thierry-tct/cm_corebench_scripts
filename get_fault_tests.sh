@@ -27,6 +27,7 @@ mountfold=$(readlink -f $TOPDIR/../..)
 workspace_dir=$(readlink -f $TOPDIR/../workspace/$id)
 tmpcmd=in_docker_run.sh
 in_docker_script=$workspace_dir/$tmpcmd
+test -d $workspace_dir || mkdir $workspace_dir || error_exit "failed to create workspace dir"
 
 echo '
 #! /bin/bash
@@ -111,7 +112,7 @@ cd $mountfold || error_exit "cd failed to mountfold"
 # Also: https://github.com/rocker-org/rocker/wiki/Sharing-files-with-host-machine
 #sudo docker run -it --rm --cap-add=SYS_PTRACE --security-opt seccomp=unconfined -security-opt apparmor=unconfined --mount type=bind,src=$(pwd),dst=/work --user 1000:1000 --privileged \
 sudo docker run -it --rm --cap-add=SYS_PTRACE --security-opt seccomp=unconfined --mount type=bind,src=$(pwd),dst=/work --user 1000:1000 --privileged \
-							 --cpus=${CPU} maweimarvin/cm bash -c "{ test -d /work/executions/workspace/$id || cd /work/executions/workspace/$id; } && bash ./${tmpcmd}"
+							 --cpus=${CPU} maweimarvin/cm bash -c "cd /work/executions/workspace/$id && bash ./${tmpcmd}"
 
 rm $in_docker_script || error_exit "failed to remove in_docker_script"
 
