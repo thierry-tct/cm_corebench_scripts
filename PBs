@@ -31,7 +31,6 @@ PREPARE OK
 RUNNING:
 -------
 ar-5 (UTHIL)
-cr-12 (== cr-17)
 ar-4-1
 cr-10
 cr-13   -- VM
@@ -46,6 +45,7 @@ DONE
 cr-22
 cr-11
 cr-15
+cr-12 (== cr-17)
 cr-7   -- VM
 cr-8   -- VM
 ar-2   -- VM
