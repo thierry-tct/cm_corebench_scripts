@@ -60,6 +60,7 @@ then
 	alias_=$(cat $exe_dir/alias)
 	conf_py=$TOPDIR/../$alias_/ctrl/conf.py
         test -d $collect || cp -r $TOPDIR/../$alias_/res $collect || error_exit "copy re failed"
+        rm -rf $collect/res/fail_test_checking
 fi
 
 fail_test_execution=$collect/fail_test_checking
