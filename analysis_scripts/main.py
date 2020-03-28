@@ -72,7 +72,7 @@ def load_data(in_top_dir, tmpdir):
         if os.system('cd {} && tar -czf {} && test -d res'.format(tmpdir, proj_tar)) != 0:
             error_exit("untar failed for {}".format(proj_tar))
         res_folder = os.path.join(tmpdir, 'res')
-        ldata = load.load(res, fault_revealing=True)
+        ldata = load.load(res_folder, fault_revealing=True)
         shutil.rmtree(res_folder)
 
         all_tests[pname] = ldata[0]
