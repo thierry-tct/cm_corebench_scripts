@@ -58,7 +58,7 @@ def load_data(in_top_dir, tmpdir, cache_file):
     tars = glob.glob(in_top_dir+'/*.tar.gz')
 
     def get_pname(in_proj_tar):
-        tar_name = os.path.basename(proj_tar)
+        tar_name = os.path.basename(in_proj_tar)
         if tar_name.startswith('ar-') or tar_name.startswith('cr-'):
             pname = tar_name.split('.')[0]
         else:
