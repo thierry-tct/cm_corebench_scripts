@@ -67,7 +67,7 @@ def load_data(in_top_dir, tmpdir, cache_file):
         return pname
     #~ def get_pname()
 
-    projs = [get_pname(t) for t in tars]
+    projs = set([get_pname(t) for t in tars])
 
     if os.path.isfile(cache_file):
         all_tests, fault_tests, relevant_mutants_to_relevant_tests, mutants_to_killingtests, tests_to_killed_mutants = \
