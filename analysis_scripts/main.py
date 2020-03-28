@@ -10,6 +10,7 @@ import shutil
 import tqdm
 import scipy.stats
 import scipy.stats.stats as ss
+import numpy as np
 
 import load
 
@@ -193,7 +194,7 @@ def main():
 
     # for each test size
     #    compute for each project (in parallel) 
-    results = {}
+    raw_results = {}
     for size_percent in tqdm.tqdm(test_sizes_percents):
         #print("# EXECUTING FOR TEST SIZE {}% ...".format(size_percent))
         # set size_percent
@@ -202,15 +203,48 @@ def main():
         # Compute
         tmp_results = map_func(compute, data)
 
-        # Organize results
-        results[size_percent] = {}
+        # Organize raw_results
+        raw_results[size_percent] = {}
         for i in range(len(order)):
-            results[size_percent][order[i]] = tmp_results[i]
+            raw_results[size_percent][order[i]] = tmp_results[i]
 
     # dump results
     raw_res_file = os.path.join(out_folder, "raw_res_file.json")
-    load.common_fs.dumpJson(results, raw_res_file, pretty=True)
+    load.common_fs.dumpJson(raw_results, raw_res_file, pretty=True)
 
+    results = {}
+    results_median = {}
+    for size_percent, size_data in raw_results.items():
+        results[size_percent] = {}
+        for proj, proj_data in sorted(list(size_data.items())):
+            for cor_subj, cor_subj_data in proj_data.items():
+                if cor_subj not in results[size_percent]:
+                    results[size_percent][cor_subj] = {}
+                for cor_type, corr in cor_subj_data.items():
+                    if cor_type not in results[size_percent][cor_subj]:
+                        results[size_percent][cor_subj][cor_type] = []
+                    results[size_percent][cor_subj][cor_type].append(corr)
+    res_file = os.path.join(out_folder, "res_file.json")
+    load.common_fs.dumpJson(results, res_file, pretty=True)
+
+    for size_percent in results:
+        results_median[size_percent] = {}
+        for cor_subj in results[size_percent]:
+            results_median[size_percent][cor_subj] = {}
+            for cor_type in results[size_percent][cor_subj]:
+                c_vals = [x['corr'] for x in results[size_percent][cor_subj][cor_type]]
+                med_vals = { 
+                               'min':np.quantile(c_vals, 0),
+                               '1st-Qt':np.quantile(c_vals, 0.25),
+                               'med':np.quantile(c_vals, 0.5),
+                               '3rd-Qt':np.quantile(c_vals, 0.75),
+                               'max':np.quantile(c_vals, 1), 
+                               'avg':sum(c_vals) * 1.0 / len(c_vals), 
+                           }
+                results_median[size_percent][cor_subj][cor_type] = med_vals
+    meds_res_file = os.path.join(out_folder, "res_file_meds.json")
+    load.common_fs.dumpJson(results, meds_res_file, pretty=True)
+                
     print("@DONE!")
 #~ def main()
 
