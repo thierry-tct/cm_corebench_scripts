@@ -195,6 +195,7 @@ def main():
     # for each test size
     #    compute for each project (in parallel) 
     raw_results = {}
+    print("\n# COMPUTING ...\n")
     for size_percent in tqdm.tqdm(test_sizes_percents):
         #print("# EXECUTING FOR TEST SIZE {}% ...".format(size_percent))
         # set size_percent
