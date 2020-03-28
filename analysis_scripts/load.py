@@ -49,6 +49,9 @@ def get_relevant_mutants_to_relevant_tests(pre_orig_ol, pre_muts_ol, post_orig_o
     for mut in muts_post_test_out.keys():
         # Check whether relevant
         for pt in muts_post_test_out[mut]:
+            if pt not in orig_pre_test_out:
+                # Flaky in pre but not in post
+                continue
             Out_O2 = orig_post_test_out[pt]
             Out_M2 = muts_post_test_out[mut][pt]
             Out_O1 = orig_pre_test_out[pt]
