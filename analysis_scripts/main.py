@@ -63,13 +63,13 @@ def load_data(in_top_dir, tmpdir):
     relevant_mutants_to_relevant_tests = {}
     mutants_to_killingtests = {}
     tests_to_killed_mutants = {}
-    for proj_tar in tars:
+    for proj_tar in tqdm.tqdm(tars):
         if os.path.basename(proj_tar).startswith('ar-') or os.path.basename(proj_tar).startswith('cr-'):
             pname = os.path.basename(proj_tar).split('.')[0]
         else:
             error_exit("TODO: implement getting pname for Wei's dataset")
 
-        if os.system('cd {} && tar -czf {} && test -d res'.format(tmpdir, proj_tar)) != 0:
+        if os.system('cd {} && tar -xzf {} && test -d res'.format(tmpdir, proj_tar)) != 0:
             error_exit("untar failed for {}".format(proj_tar))
         res_folder = os.path.join(tmpdir, 'res')
         ldata = load.load(res_folder, fault_revealing=True)
@@ -138,6 +138,7 @@ def main():
     if os.path.isdir(tmpdir):
         shutil.rmtree(tmpdir)
     os.mkdir(tmpdir)
+    print("# LOADING DATA ...")
     all_tests, fault_tests, relevant_mutants_to_relevant_tests, mutants_to_killingtests, tests_to_killed_mutants = \
 								                        load_data(in_top_dir, tmpdir)
     shutil.rmtree(tmpdir)
@@ -166,6 +167,7 @@ def main():
     #    compute for each project (in parallel) 
     results = {}
     for size_percent in tqdm.tqdm(test_sizes_percents):
+        #print("# EXECUTING FOR TEST SIZE {}% ...".format(size_percent))
         # set size_percent
         for d in data:
             d['size_percent'] = size_percent

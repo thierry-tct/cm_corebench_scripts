@@ -31,8 +31,8 @@ def get_relevant_mutants_to_relevant_tests(pre_orig_ol, pre_muts_ol, post_orig_o
     for prog, test_out in post_orig_ol.get_zip_objective_and_data():
         assert prog == 'program', "invalid program out (post)"
         orig_post_test_out = test_out
-    muts_pre_test_out = {mut: test_out for prog, test_out in pre_muts_ol.get_zip_objective_and_data()}
-    muts_post_test_out = {mut: test_out for prog, test_out in post_muts_ol.get_zip_objective_and_data()}
+    muts_pre_test_out = {mut: test_out for mut, test_out in pre_muts_ol.get_zip_objective_and_data()}
+    muts_post_test_out = {mut: test_out for mut, test_out in post_muts_ol.get_zip_objective_and_data()}
 
     assert set(orig_pre_test_out.keys()) == set(orig_post_test_out.keys()), "mismatch between pre and post (orig tests)"
     assert set(muts_pre_test_out.keys()) == set(muts_post_test_out.keys()), "mismatch between pre and post (muts)"
