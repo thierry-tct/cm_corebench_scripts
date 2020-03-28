@@ -107,7 +107,7 @@ def load_data(in_top_dir, tmpdir, cache_file):
         tests_to_killed_mutants[pname] = ldata[4]
 
     if update_cache:
-        load.common_fs.dumpJson([all_tests, fault_tests, relevant_mutants_to_relevant_tests, mutants_to_killingtests, tests_to_killed_mutants], cache_file)
+        load.common_fs.dumpJSON([all_tests, fault_tests, relevant_mutants_to_relevant_tests, mutants_to_killingtests, tests_to_killed_mutants], cache_file)
 
     return all_tests, fault_tests, relevant_mutants_to_relevant_tests, mutants_to_killingtests, tests_to_killed_mutants
 #~ def load_data()
@@ -210,7 +210,7 @@ def main():
 
     # dump results
     raw_res_file = os.path.join(out_folder, "raw_res_file.json")
-    load.common_fs.dumpJson(raw_results, raw_res_file, pretty=True)
+    load.common_fs.dumpJSON(raw_results, raw_res_file, pretty=True)
 
     results = {}
     results_median = {}
@@ -225,7 +225,7 @@ def main():
                         results[size_percent][cor_subj][cor_type] = []
                     results[size_percent][cor_subj][cor_type].append(corr)
     res_file = os.path.join(out_folder, "res_file.json")
-    load.common_fs.dumpJson(results, res_file, pretty=True)
+    load.common_fs.dumpJSON(results, res_file, pretty=True)
 
     for size_percent in results:
         results_median[size_percent] = {}
@@ -243,7 +243,7 @@ def main():
                            }
                 results_median[size_percent][cor_subj][cor_type] = med_vals
     meds_res_file = os.path.join(out_folder, "res_file_meds.json")
-    load.common_fs.dumpJson(results, meds_res_file, pretty=True)
+    load.common_fs.dumpJSON(results, meds_res_file, pretty=True)
                 
     print("@DONE!")
 #~ def main()
