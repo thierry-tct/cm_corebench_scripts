@@ -68,7 +68,6 @@ def load_data(in_top_dir, tmpdir, cache_file):
 
     projs = {get_pname(t) for t in tars}
 
-    update_cache = True
     if os.path.isfile(cache_file):
         all_tests, fault_tests, relevant_mutants_to_relevant_tests, mutants_to_killingtests, tests_to_killed_mutants = \
                                                                                         load.common_fs.loadJSON(cache_file)
@@ -158,7 +157,7 @@ def main():
 
     # CHANGABLE Hardcodec parameters
     test_sizes_percents = list(range(5,91,5))
-    sample_count = 10000
+    sample_count = 10#000
     parallel_count = 50
 
     # load data

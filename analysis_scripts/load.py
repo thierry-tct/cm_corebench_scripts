@@ -87,7 +87,7 @@ def load(resdir, fault_revealing=True):
     all_tests_pre = pre_pf_mat.get_nonkey_colname_list()
     
     # Conider test thta are not flaky in both pre and post
-    all_tests = set(all_tests_pre) & set(all_tests_post)
+    all_tests = list(set(all_tests_pre) & set(all_tests_post))
 
     # load execution outputs
     pre_orig_outlog_file = os.path.join(resdir, "pre", "RESULTS_DATA", "testexecution_outputs", "program_output.json")
