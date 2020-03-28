@@ -38,9 +38,9 @@ def get_relevant_mutants_to_relevant_tests(pre_orig_ol, pre_muts_ol, post_orig_o
         pre_post = set(orig_pre_test_out.keys()) - set(orig_post_test_out.keys())
         post_pre = set(orig_post_test_out.keys()) - set(orig_pre_test_out.keys())
         if len(pre_post) > 0:
-            print("WARNING: Some tests in pre are not in post: {}".format(pre_post))
+            print("WARNING: Some tests (flaky in post) in pre are not in post: {}".format(pre_post))
         if len(post_pre) > 0:
-            assert False, "Some test in post are not in pre: {}".format(post_pre)
+            print("WARNING: Some tests (flaky in pre) in post are not in pre: {}".format(pre_post))
 
     # Only check mutants from post because a condition to be relevant is killed
     #assert set(muts_pre_test_out.keys()) == set(muts_post_test_out.keys()), "mismatch between pre and post (muts)"
@@ -76,9 +76,15 @@ def load(resdir, fault_revealing=True):
                 fail_tests.append(line.strip())
 
     # load all tests
-    pf_file = os.path.join(resdir, "post", "RESULTS_DATA", "matrices", "PASSFAIL.csv")
-    pf_mat = common_matrices.ExecutionMatrix(pf_file)
-    all_tests = pf_mat.get_nonkey_colname_list()
+    post_pf_file = os.path.join(resdir, "post", "RESULTS_DATA", "matrices", "PASSFAIL.csv")
+    post_pf_mat = common_matrices.ExecutionMatrix(post_pf_file)
+    all_tests_post = post_pf_mat.get_nonkey_colname_list()
+    pre_pf_file = os.path.join(resdir, "pre", "RESULTS_DATA", "matrices", "PASSFAIL.csv")
+    pre_pf_mat = common_matrices.ExecutionMatrix(pre_pf_file)
+    all_tests_pre = pre_pf_mat.get_nonkey_colname_list()
+    
+    # Conider test thta are not flaky in both pre and post
+    all_tests = set(all_tests_pre) & set(all_tests_post)
 
     # load execution outputs
     pre_orig_outlog_file = os.path.join(resdir, "pre", "RESULTS_DATA", "testexecution_outputs", "program_output.json")
