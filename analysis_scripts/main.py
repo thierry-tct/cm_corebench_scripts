@@ -57,16 +57,17 @@ def get_corelation(X, Y):
 def load_data(in_top_dir, tmpdir, cache_file):
     # Get the project list
     tars = glob.glob(in_top_dir+'/*.tar.gz')
-
+    
     def get_pname(in_proj_tar):
         tar_name = os.path.basename(in_proj_tar)
         if tar_name.startswith('ar-') or tar_name.startswith('cr-'):
             pname = tar_name.split('.')[0]
         else:
             error_exit("TODO: implement getting pname for Wei's dataset")
+        return pname
     #~ def get_pname()
 
-    projs = {get_pname(t) for t in tars}
+    projs = [get_pname(t) for t in tars]
 
     if os.path.isfile(cache_file):
         all_tests, fault_tests, relevant_mutants_to_relevant_tests, mutants_to_killingtests, tests_to_killed_mutants = \
@@ -201,6 +202,7 @@ def main():
             d['size_percent'] = size_percent
         # Compute
         tmp_results = map_func(compute, data)
+        print(tmp_results)        
 
         # Organize raw_results
         raw_results[size_percent] = {}
