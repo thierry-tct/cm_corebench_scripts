@@ -244,7 +244,7 @@ def main():
                            }
                 results_median[size_percent][cor_subj][cor_type] = med_vals
     meds_res_file = os.path.join(out_folder, "res_file_meds.json")
-    load.common_fs.dumpJSON(results, meds_res_file, pretty=True)
+    load.common_fs.dumpJSON(results_median, meds_res_file, pretty=True)
                 
     print("@DONE!")
 #~ def main()
