@@ -7,14 +7,13 @@ import os
 import sys
 
 try:
-    import muteria
+    import muteria.common.fs as common_fs
+    import muteria.common.matrices as common_matrices
 except ImportError:
     sys.path.insert(0, '/home/mfi/mytools/muteria')
-    import muteria
+    import muteria.common.fs as common_fs
+    import muteria.common.matrices as common_matrices
     sys.path.pop(0)
-
-common_fs = muteria.common.fs
-common_matrices = muteria.common.matrices
 
 equal_log = common_matrices.OutputLogData.outlogdata_equiv
 
@@ -55,7 +54,7 @@ def get_relevant_mutants_to_relevant_tests(pre_orig_ol, pre_muts_ol, post_orig_o
                     relevant_mutants_to_relevant_tests[mut] = []
                 relevant_mutants_to_relevant_tests[mut].append(pt)
 
-   return relevant_mutants_to_relevant_tests
+    return relevant_mutants_to_relevant_tests
 #~ def get_relevant_mutants_to_relevant_tests()
 
 def load(resdir, fault_revealing=True):

@@ -119,9 +119,9 @@ def main():
         error_exit("expected 3 args. got {}". format(len(sys.argv)))
     in_top_dir = os.path.abspath(sys.argv[1])
     out_top_dir = os.path.abspath(sys.argv[2])
-    if not os.path.isfile(in_top_dir):
+    if not os.path.isdir(in_top_dir):
         error_exit("in top dir missing ({})".format(in_top_dir))
-    if not os.path.isfile(out_top_dir):
+    if not os.path.isdir(out_top_dir):
         error_exit("out top dir missing ({})".format(out_top_dir))
 
     out_folder = os.path.join(out_top_dir, "ANALYSIS_OUTPUT")
@@ -138,7 +138,7 @@ def main():
     if os.path.isdir(tmpdir):
         shutil.rmtree(tmpdir)
     all_tests, fault_tests, relevant_mutants_to_relevant_tests, mutants_to_killingtests, tests_to_killed_mutants = \
-												    load_data(in_top_dir)
+								                        load_data(in_top_dir, tmpdir)
     shutil.rmtree(tmpdir)
     
     # update parallel_count
