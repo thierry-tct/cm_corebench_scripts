@@ -53,22 +53,41 @@ def get_corelation(X, Y):
     return correlation
 #~ def get_corelation() 
 
-def load_data(in_top_dir, tmpdir):
+def load_data(in_top_dir, tmpdir, cache_file):
     # Get the project list
     tars = glob.glob(in_top_dir+'/*.tar.gz')
 
-    # Load projects data
-    all_tests = {}
-    fault_tests = {}
-    relevant_mutants_to_relevant_tests = {}
-    mutants_to_killingtests = {}
-    tests_to_killed_mutants = {}
-    for proj_tar in tqdm.tqdm(tars):
-        if os.path.basename(proj_tar).startswith('ar-') or os.path.basename(proj_tar).startswith('cr-'):
-            pname = os.path.basename(proj_tar).split('.')[0]
+    def get_pname(in_proj_tar):
+        tar_name = os.path.basename(proj_tar)
+        if tar_name.startswith('ar-') or tar_name.startswith('cr-'):
+	    pname = tar_name.split('.')[0]
         else:
-            error_exit("TODO: implement getting pname for Wei's dataset")
+	    error_exit("TODO: implement getting pname for Wei's dataset")
+    #~ def get_pname()
 
+    projs = {get_pname(t) for t in tars}
+
+    update_cache = True
+    if os.path.isfile(cache_file):
+        all_tests, fault_tests, relevant_mutants_to_relevant_tests, mutants_to_killingtests, tests_to_killed_mutants = \
+                                                                                        load.common_fs.loadJSON(cache_file)
+        cache_projs = set(all_tests)
+        not_cached = projs - cache_projs
+    else:
+        not_cached = projs
+        all_tests = {}
+        fault_tests = {}
+        relevant_mutants_to_relevant_tests = {}
+        mutants_to_killingtests = {}
+        tests_to_killed_mutants = {}
+
+    update_cache = (len(not_cached) > 0)
+    
+    # Load projects data
+    for proj_tar in tqdm.tqdm(tars):
+        pname = get_pname(proj_tar)
+        if pname not in not_cached:
+            continue
         if os.system('cd {} && tar -xzf {} && test -d res'.format(tmpdir, proj_tar)) != 0:
             error_exit("untar failed for {}".format(proj_tar))
         res_folder = os.path.join(tmpdir, 'res')
@@ -80,6 +99,9 @@ def load_data(in_top_dir, tmpdir):
         relevant_mutants_to_relevant_tests[pname] = ldata[2]
         mutants_to_killingtests[pname] = ldata[3]
         tests_to_killed_mutants[pname] = ldata[4]
+
+    if update_cache:
+        load.common_fs.dumpJson([all_tests, fault_tests, relevant_mutants_to_relevant_tests, mutants_to_killingtests, tests_to_killed_mutants], cache_file)
 
     return all_tests, fault_tests, relevant_mutants_to_relevant_tests, mutants_to_killingtests, tests_to_killed_mutants
 #~ def load_data()
@@ -139,8 +161,9 @@ def main():
         shutil.rmtree(tmpdir)
     os.mkdir(tmpdir)
     print("# LOADING DATA ...")
+    cache_file = os.path.join(out_folder, "cache_file.json")
     all_tests, fault_tests, relevant_mutants_to_relevant_tests, mutants_to_killingtests, tests_to_killed_mutants = \
-								                        load_data(in_top_dir, tmpdir)
+								              load_data(in_top_dir, tmpdir, cache_file)
     shutil.rmtree(tmpdir)
     
     # update parallel_count
