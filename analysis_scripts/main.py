@@ -84,7 +84,9 @@ def load_data(in_top_dir, tmpdir, cache_file):
     update_cache = (len(not_cached) > 0)
     
     # Load projects data
-    for proj_tar in tqdm.tqdm(tars):
+    tq_data = tqdm.tqdm(tars)
+    for proj_tar in tq_data:
+        tq_data.set_description("Loading tar: {}".format(proj_tar))
         pname = get_pname(proj_tar)
         if pname not in not_cached:
             continue
