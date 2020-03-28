@@ -90,7 +90,10 @@ def load_data(in_top_dir, tmpdir, cache_file):
         pname = get_pname(proj_tar)
         if pname not in not_cached:
             continue
-        if os.system('cd {} && tar -xzf {} && test -d res'.format(tmpdir, proj_tar)) != 0:
+        if os.system('cd {} && tar -xzf {} --exclude {} --exclude {} && test -d res'.format(\
+                                                        tmpdir, proj_tar, \
+                                                        'post/RESULTS_DATA/other_copied_results/Flakiness', \
+                                                        'pre/RESULTS_DATA/other_copied_results/Flakiness')) != 0:
             error_exit("untar failed for {}".format(proj_tar))
         res_folder = os.path.join(tmpdir, 'res')
         ldata = load.load(res_folder, fault_revealing=True)
