@@ -229,12 +229,13 @@ def main():
     res_file = os.path.join(out_folder, "res_file.json")
     load.common_fs.dumpJSON(results, res_file, pretty=True)
 
+    exclude_nan = True
     for size_percent in results:
         results_median[size_percent] = {}
         for cor_subj in results[size_percent]:
             results_median[size_percent][cor_subj] = {}
             for cor_type in results[size_percent][cor_subj]:
-                c_vals = [x['corr'] for x in results[size_percent][cor_subj][cor_type]]
+                c_vals = [x['corr'] for x in results[size_percent][cor_subj][cor_type] if not np.isnan(x['corr'])]
                 med_vals = { 
                                'min':np.quantile(c_vals, 0),
                                '1st-Qt':np.quantile(c_vals, 0.25),
