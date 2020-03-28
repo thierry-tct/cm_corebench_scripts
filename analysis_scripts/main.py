@@ -158,7 +158,7 @@ def main():
 
     # CHANGABLE Hardcodec parameters
     test_sizes_percents = list(range(5,91,5))
-    sample_count = 10#000
+    sample_count = 10000
     parallel_count = 50
 
     # load data
@@ -186,8 +186,8 @@ def main():
                 'all_tests': all_tests[i],
                 'fault_tests': fault_tests[i],
                 'relevant_mutants_to_relevant_tests': relevant_mutants_to_relevant_tests[i], 
-                'mutants_to_killingtests': mutants_to_killingtests, 
-                'tests_to_killed_mutants': tests_to_killed_mutants, 
+                'mutants_to_killingtests': mutants_to_killingtests[i], 
+                'tests_to_killed_mutants': tests_to_killed_mutants[i], 
                 'size_percent': None,
             } for i in order
     ]
