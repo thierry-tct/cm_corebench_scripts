@@ -60,9 +60,9 @@ def load_data(in_top_dir, tmpdir, cache_file):
     def get_pname(in_proj_tar):
         tar_name = os.path.basename(proj_tar)
         if tar_name.startswith('ar-') or tar_name.startswith('cr-'):
-	    pname = tar_name.split('.')[0]
+            pname = tar_name.split('.')[0]
         else:
-	    error_exit("TODO: implement getting pname for Wei's dataset")
+            error_exit("TODO: implement getting pname for Wei's dataset")
     #~ def get_pname()
 
     projs = {get_pname(t) for t in tars}
