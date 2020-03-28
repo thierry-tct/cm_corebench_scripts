@@ -64,8 +64,8 @@ def load_data(in_top_dir, tmpdir):
     mutants_to_killingtests = {}
     tests_to_killed_mutants = {}
     for proj_tar in tars:
-        if os.path.basemane(proj_tar).startswith('ar-') or os.path.basemane(proj_tar).startswith('cr-'):
-            pname = os.path.basemane(proj_tar).split('.')[0]
+        if os.path.basename(proj_tar).startswith('ar-') or os.path.basename(proj_tar).startswith('cr-'):
+            pname = os.path.basename(proj_tar).split('.')[0]
         else:
             error_exit("TODO: implement getting pname for Wei's dataset")
 
@@ -137,6 +137,7 @@ def main():
     tmpdir = os.path.join(out_folder, "tmp_extracttar_dir.tmp")
     if os.path.isdir(tmpdir):
         shutil.rmtree(tmpdir)
+    os.mkdir(tmpdir)
     all_tests, fault_tests, relevant_mutants_to_relevant_tests, mutants_to_killingtests, tests_to_killed_mutants = \
 								                        load_data(in_top_dir, tmpdir)
     shutil.rmtree(tmpdir)
