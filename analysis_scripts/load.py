@@ -35,16 +35,17 @@ def get_relevant_mutants_to_relevant_tests(pre_orig_ol, pre_muts_ol, post_orig_o
     muts_post_test_out = {mut: test_out for mut, test_out in post_muts_ol.get_zip_objective_and_data()}
 
     assert set(orig_pre_test_out.keys()) == set(orig_post_test_out.keys()), "mismatch between pre and post (orig tests)"
-    assert set(muts_pre_test_out.keys()) == set(muts_post_test_out.keys()), "mismatch between pre and post (muts)"
+    # Only check mutants from post because a condition to be relevant is killed
+    #assert set(muts_pre_test_out.keys()) == set(muts_post_test_out.keys()), "mismatch between pre and post (muts)"
     
     relevant_mutants_to_relevant_tests = {}
-    for mut in muts_pre_test_out.keys():
+    for mut in muts_post_test_out.keys():
         # Check whether relevant
         for pt in muts_post_test_out[mut]:
             Out_O2 = orig_post_test_out[pt]
             Out_M2 = muts_post_test_out[mut][pt]
             Out_O1 = orig_pre_test_out[pt]
-            if pt in muts_pre_test_out[mut]:
+            if mut in muts_pre_test_out and pt in muts_pre_test_out[mut]:
                 Out_M1 = muts_pre_test_out[mut][pt]
             else:
                 Out_M1 = Out_O1
