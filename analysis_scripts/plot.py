@@ -32,7 +32,7 @@ def plotTrend(name_to_data, image_file, xlabel, ylabel, order=None):
     plt.ylabel(ylabel, fontsize=fontsize)
     plt.xlabel(xlabel, fontsize=fontsize)
     step = int(min(maxx, 10))
-    plt.xticks(range(1, maxx+1, int(maxx/step)) if (maxx % step == 0 or type(maxx) == int) else np.arange(1,maxx+1, maxx/float(step)), fontsize=fontsize-5)
+    plt.xticks(list(range(1, maxx+1, int(maxx/step))) + [maxx] if (maxx % step == 0 or type(maxx) == int) else np.arange(1,maxx+1, maxx/float(step)), fontsize=fontsize-5)
     plt.yticks(np.arange(0,1.01,0.2), fontsize=fontsize-5)
     legendMode=1 if len(order) <= 3 else 2
     if legendMode==1:

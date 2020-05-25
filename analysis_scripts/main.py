@@ -11,6 +11,7 @@ import tqdm
 import scipy.stats
 import scipy.stats.stats as ss
 import numpy as np
+import pandas as pd
 
 import load
 import plot
@@ -22,6 +23,30 @@ def error_exit(err):
     print("@Error: "+err)
     exit(1)
 #~def error_exit()
+
+###### Non Parametic Vargha Delaney A12 ######
+# Taken from -- https://gist.github.com/timm/5630491
+
+def a12(lst1,lst2,pairwise=False, rev=True):
+    "how often is x in lst1 more than y in lst2?"
+    more = same = 0.0
+    for i,x in enumerate(lst1):
+        second = [lst2[i]] if pairwise else lst2
+        for y in second:
+            if   x==y : same += 1
+            elif rev     and x > y : more += 1
+            elif not rev and x < y : more += 1
+    return (more + 0.5*same)  / (len(lst1) if pairwise else len(lst1)*len(lst2))
+
+def wilcoxon(list1, list2, isranksum=True):
+    if isranksum:
+        p_value = scipy.stats.ranksums(list1, list2)
+    else:
+        p_value = scipy.stats.wilcoxon(list1, list2)
+    return p_value
+#~ def wilcoxon()
+
+#############################################
 
 def repetavg_and_proj_proportion_aggregate (proj2repetlists, stopAt=None):
     projlist = list(proj2repetlists)
@@ -404,39 +429,55 @@ def main():
                             
                 load.common_fs.dumpJSON([randomAll_rMS, randomKillable_rMS, randomRelevant_rMS, randomAll_FR, randomKillable_FR, randomRelevant_FR], sim_cache_file)
 
+            with_random_killable = False
+            data_lists = (randomAll_rMS, randomRelevant_rMS, randomAll_FR, randomRelevant_FR)
+            if with_random_killable:
+                data_lists = data_lists + (randomKillable_rMS, randomKillable_FR)
+
             # unifirmization
             minstopat = 999999999999
             maxstopat = 0
-            for l in (randomAll_rMS, randomKillable_rMS, randomRelevant_rMS, randomAll_FR, randomKillable_FR, randomRelevant_FR):
+            for l in data_lists:
                 for p,d in l.items():
                     for e_list in d:
                         minstopat = min(minstopat, len(e_list))
                         maxstopat = max(maxstopat, len(e_list))
             print("# minstopat is {}, maxstopat is {}".format(minstopat, maxstopat))
 
+            x_label = 'Number of Mutants'
             if scenario == COLLATERALLY_KILL:
                 # normalize to 0-100
-                minstopat = 101
-                for l in (randomAll_rMS, randomKillable_rMS, randomRelevant_rMS, randomAll_FR, randomKillable_FR, randomRelevant_FR):
-                    for p,d in l.items():
-                        for _ind in range(len(d)):
-                             d[_ind] = normalized_x(d[_ind])
+                x_label = "Percentage of Mutants"
+                minstopat = 100
+                normalize_data_x(data_lists, relevant_dat=randomRelevant_FR)
+
+            # XXX: Change this if normalize_data_x changes ()
+            stat_dat = stat_test (randomRelevant_FR, randomRelevant_rMS, 'Relevant', randomAll_FR, randomAll_rMS, 'Random')
+            stat_file = os.path.join(out_folder, "stat_test.csv")
+            load.common_fs.dumpCSV(pd.DataFrame(stat_dat), stat_file, separator=',')
 
             # XXX Aggregate and Plot the data
-            order = ['RandomRelevant', 'Random']
+            order = ['Relevant', 'Random']
             ## FR
             img_file = os.path.join(out_folder, 'FR_PLOT_{}'.format(scenario))
-            allMedToPlot = {'Random': randomAll_FR, 'RandomRelevant': randomRelevant_FR}
+            allMedToPlot = {'Random': randomAll_FR, 'Relevant': randomRelevant_FR}
             for k,v in allMedToPlot.items():
                 allMedToPlot[k] = repetavg_and_proj_proportion_aggregate (v, stopAt=minstopat)
-            plot.plotTrend(allMedToPlot, img_file, 'Number of Mutants', 'Fault Revelation', order=order)
+            plot.plotTrend(allMedToPlot, img_file, x_label, 'Fault Revelation', order=order)
             for pc in [0.25, 0.5, 0.75]:
                 ## rMS
-                img_file = os.path.join(out_folder, 'rMS_PLOT_{}_{}'.format(scenario, pc))
-                allMedToPlot = {'Random': randomAll_rMS, 'RandomRelevant': randomRelevant_rMS}
+                pc_name = 'median'
+                if pc == 0.25:
+                    pc_name = '1stQuantile'
+                elif pc == 0.75:
+                    pc_name = '3rdQuantile'
+                elif pc != 0.5:
+                    pc_name = pc
+                img_file = os.path.join(out_folder, 'rMS_PLOT_{}_{}'.format(scenario, pc_name))
+                allMedToPlot = {'Random': randomAll_rMS, 'Relevant': randomRelevant_rMS}
                 for k,v in allMedToPlot.items():
                     allMedToPlot[k] = allmedian_aggregate (v, percentile=pc, stopAt=minstopat)
-                plot.plotTrend(allMedToPlot, img_file, 'Number of Mutants', 'Relevant Mutation Score', order=order)
+                plot.plotTrend(allMedToPlot, img_file, x_label, 'Relevant Mutation Score', order=order)
 
             # Box
             #groupedData = {i: flattened_data
@@ -444,6 +485,31 @@ def main():
 
     print("@DONE!")
 #~ def main()
+
+def normalize_data_x(data_lists, relevant_dat=None, use_med=False):
+    # Default use min
+
+    for proj in data_lists[0]:
+        if relevant_dat is None:
+            min_max_len = len(data_lists[0][proj][0])
+            for dl in data_lists:
+                for rep_dat in dl[proj]:
+                    min_max_len = min(min_max_len, len(rep_dat))
+        else:
+            min_max_len = len(relevant_dat[proj][0])
+            for rep_dat in relevant_dat[proj]:
+                min_max_len = max(min_max_len, len(rep_dat))
+            
+        for dl in data_lists:
+            for ind, rep_dat in enumerate(dl[proj]):
+                to_add = [rep_dat[-1]] * (min_max_len - len(rep_dat))
+                if to_add:
+                    rep_dat.extend(to_add)
+                else:
+                    del rep_dat[min_max_len:]
+                dl[proj][ind] = normalized_x(rep_dat)
+
+#~ def normalize_data_x()
 
 def normalized_x(arr):
     l = len(arr)
@@ -467,12 +533,37 @@ def normalized_x(arr):
                 ret.append(v)
                 ind += step
             next_p += 1
-    if len(ret) > 100:
+    if len(ret) < 100:
         print (len(arr), len(ret), 'PB')
         #error_exit('PB')
 
-    return ret
+    return ret[:100]
 #~ def normalize()
+
+def stat_test (left_FR, left_rMS, left_name, right_FR, right_rMS, right_name):
+    res = {}
+    left_fr_list = {i: [] for i in range(1, 101)} 
+    left_rms_list = {i: [] for i in range(1, 101)}
+    right_fr_list = {i: [] for i in range(1, 101)}
+    right_rms_list = {i: [] for i in range(1, 101)}
+    for in_dat, out_list in [(left_FR, left_fr_list), (left_rMS, left_rms_list), (right_FR, right_fr_list), (right_rMS, right_rms_list)]:
+        for proj, dat in in_dat.items():
+            for rep_dat in dat:
+                for ind, val in enumerate(rep_dat):
+                    out_list[ind+1].append(val)
+    res['proportions'] = range(1,101)
+    res['FR-p_value'] = []
+    res['rMS-p_value'] = []
+    res['FR-A12'] = []
+    res['rMS-A12'] = []
+    for i in left_fr_list:
+        res['FR-p_value'].append(wilcoxon(left_fr_list[i], right_fr_list[i], isranksum=True).pvalue)
+        res['rMS-p_value'].append(wilcoxon(left_rms_list[i], right_rms_list[i], isranksum=True).pvalue)
+        res['FR-A12'].append(a12(left_fr_list[i],right_fr_list[i], pairwise=False, rev=True))
+        res['rMS-A12'].append(a12(left_rms_list[i],right_rms_list[i], pairwise=False, rev=True))
+
+    return res
+#~ def stat_test()
 
 if __name__ == "__main__":
     main()
