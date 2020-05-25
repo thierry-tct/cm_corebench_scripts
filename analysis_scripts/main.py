@@ -13,11 +13,31 @@ import scipy.stats.stats as ss
 import numpy as np
 
 import load
+import plot
 
 def error_exit(err):
     print("@Error: "+err)
     exit(1)
 #~def error_exit()
+
+def allmedian_aggregate (proj2repetlists, percentile=0.5, stopAt=None):
+    ''' return a key value, where keys are indexes and values the values
+    '''
+    projlist = list(proj2repetlists)
+    size = len(proj2repetlists[projlist[0]][0])
+    if stopAt is not None and size > stopAt:
+        size = stopAt
+    res = {}
+    for i in range(size):
+        key = i+1
+        for proj, pdat in proj2repetlists.items():
+            for rep_dat in pdat:
+                res[key].append(rep_dat[i])
+        
+        res[key] = np.quantile(res[key], percentile)
+
+    return res
+#~ def allmedian_aggregate()
 
 def get_samples(all_tests, size_percent=5, count=10000):
     assert size_percent > 0 and size_percent < 100, "invalid size_percent"
@@ -195,7 +215,7 @@ def main():
     # for each test size
     #    compute for each project (in parallel) 
     raw_results = {}
-    print("\n# COMPUTING ...\n")
+    print("\n# COMPUTING CORRELATIONS ...\n")
     for size_percent in tqdm.tqdm(test_sizes_percents):
         #print("# EXECUTING FOR TEST SIZE {}% ...".format(size_percent))
         # set size_percent
@@ -253,6 +273,87 @@ def main():
     meds_res_file = os.path.join(out_folder, "res_file_meds.json")
     load.common_fs.dumpJSON(results_median, meds_res_file, pretty=True)
                 
+    print("\n# COMPUTING SIMULATIONS ...\n")
+
+    scenario = 'independent_kill'
+    nRepeat = 10000
+
+    sim_cache_file = os.path.join(out_folder, "sim_cache_file.{}.json".format(scenario))
+    if os.path.isfile (sim_cache_file)
+        randomAll_rMS, randomKillable_rMS, randomRelevant_rMS, randomAll_FR, randomKillable_FR, randomRelevant_FR = load.common_fs.loadJSON(sim_cache_file)
+    else:
+        randomAll_rMS = {}
+        randomKillable_rMS = {}
+        randomRelevant_rMS = {}
+        randomAll_FR = {}
+        randomKillable_FR = {}
+        randomRelevant_FR = {}
+        for ind, proj in enumerate(order):
+            print ("processing project {}/{} ...".format(ind+1, len(order)))
+
+            fr_tests = set(fault_tests[proj])
+            tests_killing_relevant_muts = set()
+            for m, tl in relevant_mutants_to_relevant_tests[proj].items():
+                tests_killing_relevant_muts |= set(tl)
+
+            allMuts = list(mutants_to_killingtests[proj])
+            killableMutants = [m for m, kt in mutants_to_killingtests[proj].items() if len(kt) > 0]
+            relevantMuts = list(relevant_mutants_to_relevant_tests[proj])
+            randomAll_rMS[proj] = []
+            randomKillable_rMS[proj] = []
+            randomRelevant_rMS[proj] = []
+            randomAll_FR[proj] = []
+            randomKillable_FR[proj] = []
+            randomRelevant_FR[proj] = []
+            for i in tqdm.tqdm(range(nRepeat)):
+                allMuts.shuffle()
+                killableMutants.shuffle()
+                relevantMuts.shuffle()
+                # compute the incremental relevant score and fault detection
+                for inList, outTopList_rMS, outTopList_FR in [(allMuts, randomAll_rMS[proj], randomAll_FR[proj]), \
+                                                                (killableMutants, randomKillable_rMS[proj], randomKillable_FR[proj]), \
+                                                                (relevantMuts, randomRelevant_rMS[proj], randomRelevant_FR[proj])]:
+                    tmp_rMS = []
+                    tmp_FR = []
+                    seen_fr_tests = set()
+                    killed_relevant_muts_set = set()
+                    for mut in inList:  # TODO: Consider other scenarios
+                        kts = mutants_to_killingtests[mut]
+                        if len(kts) != 0:
+                            # pick a killing test
+                            t = random.choice(kts)
+
+                            # set FR and rMS
+                            if t in tests_killing_relevant_muts:
+                                killed_relevant_muts_set |= set(tests_to_killed_mutants[t])
+                            if t in fr_tests:
+                                seen_fr_tests.add(t)
+                        tmp_FR.append(len(seen_fr_tests))
+                        tmp_rMS.append(len(killed_relevant_muts_set) * 1.0 / len(relevantMuts))
+
+                    outTopList_rMS.append(tmp_rMS)
+                    outTopList_FR.append(tmp_FR)
+        load.common_fs.dumpJSON([randomAll_rMS, randomKillable_rMS, randomRelevant_rMS, randomAll_FR, randomKillable_FR, randomRelevant_FR], sim_cache_file)
+
+    # unifirmization
+    minstopat = min([len(rm2tests) for proj, rm2tests in relevant_mutants_to_relevant_tests.items()])
+    maxstopat = max([len(rm2tests) for proj, rm2tests in relevant_mutants_to_relevant_tests.items()])
+
+    # XXX Aggregate and Plot the data
+    for pc in [0.25, 0.5, 0.75]:
+        ## FR
+        img_file = os.path.join(out_folder, 'FR_PLOT_{}_{}'.format(scenario, pc))
+        allMedToPlot = {'Random': randomAll_FR, 'RandomKillable': randomKillable_FR, 'RandomRelevant': randomRelevant_FR}
+        for k,v in allMedToPlot:
+            allMedToPlot[k] = allmedian_aggregate (v, percentile=pc, stopAt=minstopat)
+        plot.plotTrend(allMedToPlot, img_file, 'Number of Mutants', 'Fault Revelation')
+        ## rMS
+        img_file = os.path.join(out_folder, 'rMS_PLOT_{}_{}'.format(scenario, pc))
+        allMedToPlot = {'Random': randomAll_rMS, 'RandomKillable': randomKillable_rMS, 'RandomRelevant': randomRelevant_rMS}
+        for k,v in allMedToPlot:
+            allMedToPlot[k] = allmedian_aggregate (v, percentile=pc, stopAt=minstopat)
+        plot.plotTrend(allMedToPlot, img_file, 'Number of Mutants', 'Relevant Mutation Score')
+
     print("@DONE!")
 #~ def main()
 
