@@ -31,7 +31,7 @@ then
                                          --mount type=bind,src=$in_top_dir,dst=/work_in \
                                          --mount type=bind,src=$out_top_dir,dst=/work_out \
                                          --mount type=bind,src=$TOPDIR,dst=/work_script \
-                                         --user 1000:1000 --privileged $docker_image_name bash -c "python /work_script/main.py /work_in /work_out"    
+                                         --user 1000:1000 --privileged $docker_image_name bash -c "pip install seaborn; python /work_script/main.py /work_in /work_out"    
 else
     python3 $TOPDIR/main.py $in_top_dir $out_top_dir || error_exit "Execution failed"
 fi

@@ -44,3 +44,68 @@ def plotTrend(name_to_data, image_file, xlabel, ylabel, order=None):
     plt.savefig(image_file+".pdf", format='pdf', bbox_extra_artists=(lgd,), bbox_inches='tight')
     plt.close('all')
 #~ def plotTrend()
+
+def plot_Box_Grouped(groupedData, imagefile, colors_bw, ylabel, selectGroups=None, selectData=None, \
+				groupsLabelsDict=None, dataLabelsDict=None, yticks_range=range(0,101,20), fontsize=26, title=None): 
+    plt.figure(figsize=(16, 8)) 
+    plt.gcf().subplots_adjust(bottom=0.27)
+    #plt.style.use(u'ggplot')
+    #plt.style.use(u'seaborn-ticks')
+    sns.set_style("ticks")
+    
+    if selectGroups is None:
+        selectGroups = list(groupedData)
+    if groupsLabelsDict is None:
+        groupsLabelsDict = {g:g for g in selectGroups}
+    if selectData is None:
+        selectData = list(groupedData[selectGroups[0]])
+    if dataLabelsDict is None:
+        dataLabelsDict = {d:d for d in selectData}
+
+    nBoxes = 0
+    plotobjList = []
+    labels = []
+    coloring = []
+    positions = []
+    lastpos = -0.5
+    for g_ind, group in enumerate(selectGroups):
+        plotobjList += [groupedData[group][data] for data in selectData]
+        labels += [' '.join([groupsLabelsDict[group], dataLabelsDict[data]]) for data in selectData]
+        coloring += colors_bw[:len(selectData)]
+        positions += [lastpos+0.5+i for i in range(1, len(selectData)+1)]
+        lastpos = positions[-1]
+    nBoxes = len(plotobjList) - g_ind
+    bp = plt.boxplot(plotobjList, labels=labels, widths=0.75, positions=positions, patch_artist=True)
+
+    medianValues = []
+    for ind,box in enumerate(bp['boxes']):
+        box.set(color='black')
+        box.set(facecolor = coloring[ind])
+    for ind,med in enumerate(bp['medians']):
+        med.set(color='black', lw=4)
+        medianValues.append(med.get_xydata()[1][1])
+    for ind,wh in enumerate(bp['whiskers']):
+        wh.set(color='black')
+    for ind,wh in enumerate(bp['fliers']):
+        wh.set(mew=2)
+
+    plt.ylabel(ylabel, fontsize=fontsize)
+    if nBoxes > 2:
+        plt.xticks(fontsize=fontsize, rotation=30, ha='right')
+    else:
+        plt.xticks(fontsize=fontsize) # do not rotate x ticks
+    if yticks_range is not None:
+        plt.yticks(yticks_range, fontsize=fontsize)
+    else:
+        plt.yticks(fontsize=fontsize)
+    if title is not None:
+        plt.title(title, fontsize=fontsize, fontdict={"weight":"bold"})
+    plt.tight_layout()
+    ybot, ytop = plt.gca().get_ylim()
+    ypad = (ytop - ybot) / 50
+    #ypad = 2
+    plt.gca().set_ylim(ybot - ypad, ytop + ypad)
+    plt.savefig(imagefile+".pdf", format='pdf')
+    plt.close('all')
+    return medianValues
+#~ def plot_Box_Grouped()

@@ -15,6 +15,9 @@ import numpy as np
 import load
 import plot
 
+NO_CORRELATION = True
+NO_SIMULATION = False
+
 def error_exit(err):
     print("@Error: "+err)
     exit(1)
@@ -117,6 +120,15 @@ def load_data(in_top_dir, tmpdir, cache_file):
                                                         'pre/RESULTS_DATA/other_copied_results/Flakiness')) != 0:
             error_exit("untar failed for {}".format(proj_tar))
         res_folder = os.path.join(tmpdir, 'res')
+
+        # XXX fix matrices
+        #if True:
+        #    fix_matrices(os.path.join(res_folder, 'pre', 'RESULTS_DATA'))
+        #    fix_matrices(os.path.join(res_folder, 'post', 'RESULTS_DATA'))
+        #    if os.system('tar -czf {} {}'.format(proj_tar, res_folder)) != 0:
+        #        error_exit ("failed to update tar by fixing matrices")
+        #~~~~~~~~~~~~
+
         ldata = load.load(res_folder, fault_revealing=True)
         shutil.rmtree(res_folder)
 
@@ -131,6 +143,17 @@ def load_data(in_top_dir, tmpdir, cache_file):
 
     return all_tests, fault_tests, relevant_mutants_to_relevant_tests, mutants_to_killingtests, tests_to_killed_mutants
 #~ def load_data()
+
+def fix_matrices (results_data_dir):
+    import os
+    from muteria.drivers import DriversUtils
+    sm_mat = os.path.join(results_data_dir, 'matrices', 'STRONG_MUTATION.csv')
+    sm_out = os.path.join(results_data_dir, 'testexecution_outputs', 'STRONG_MUTATION_output.json')
+    p_mat = os.path.join(results_data_dir, 'matrices', 'PASSFAIL.csv')
+    p_out = os.path.join(results_data_dir, 'testexecution_outputs', 'program_output.json')
+    DriversUtils.update_matrix_to_cover_when_difference (sm_mat, sm_out, p_mat, p_out)
+    print ("Fix success for {}!".format(results_data_dir))
+#~ def fix_matrices ()
 
 def compute(kwargs):
     #  Get subtest list
@@ -199,6 +222,10 @@ def main():
         parallel_pool = multiprocessing.Pool(parallel_count)
         map_func = parallel_pool.map
     
+    if parallel_count > 1:
+        parallel_pool = multiprocessing.Pool(parallel_count)
+        map_func = parallel_pool.map
+    
     # organize the data
     order = sorted(list(all_tests.keys()))
     data = [{
@@ -212,147 +239,175 @@ def main():
             } for i in order
     ]
 
-    # for each test size
-    #    compute for each project (in parallel) 
-    raw_results = {}
-    print("\n# COMPUTING CORRELATIONS ...\n")
-    for size_percent in tqdm.tqdm(test_sizes_percents):
-        #print("# EXECUTING FOR TEST SIZE {}% ...".format(size_percent))
-        # set size_percent
-        for d in data:
-            d['size_percent'] = size_percent
-        # Compute
-        tmp_results = map_func(compute, data)
-        print(tmp_results)        
+    if not NO_CORRELATION:
+        # for each test size
+        #    compute for each project (in parallel) 
+        raw_results = {}
+        print("\n# COMPUTING CORRELATIONS ...\n")
+        for size_percent in tqdm.tqdm(test_sizes_percents):
+            #print("# EXECUTING FOR TEST SIZE {}% ...".format(size_percent))
+            # set size_percent
+            for d in data:
+                d['size_percent'] = size_percent
+            # Compute
+            tmp_results = map_func(compute, data)
+            print(tmp_results)        
 
-        # Organize raw_results
-        raw_results[size_percent] = {}
-        for i in range(len(order)):
-            raw_results[size_percent][order[i]] = tmp_results[i]
+            # Organize raw_results
+            raw_results[size_percent] = {}
+            for i in range(len(order)):
+                raw_results[size_percent][order[i]] = tmp_results[i]
 
-    # dump results
-    raw_res_file = os.path.join(out_folder, "raw_res_file.json")
-    load.common_fs.dumpJSON(raw_results, raw_res_file, pretty=True)
+        # dump results
+        raw_res_file = os.path.join(out_folder, "raw_res_file.json")
+        load.common_fs.dumpJSON(raw_results, raw_res_file, pretty=True)
 
-    results = {}
-    results_median = {}
-    for size_percent, size_data in raw_results.items():
-        results[size_percent] = {}
-        for proj, proj_data in sorted(list(size_data.items())):
-            for cor_subj, cor_subj_data in proj_data.items():
-                if cor_subj not in results[size_percent]:
-                    results[size_percent][cor_subj] = {}
-                for cor_type, corr in cor_subj_data.items():
-                    if cor_type not in results[size_percent][cor_subj]:
-                        results[size_percent][cor_subj][cor_type] = []
-                    results[size_percent][cor_subj][cor_type].append(corr)
-    res_file = os.path.join(out_folder, "res_file.json")
-    load.common_fs.dumpJSON(results, res_file, pretty=True)
+        results = {}
+        results_median = {}
+        for size_percent, size_data in raw_results.items():
+            results[size_percent] = {}
+            for proj, proj_data in sorted(list(size_data.items())):
+                for cor_subj, cor_subj_data in proj_data.items():
+                    if cor_subj not in results[size_percent]:
+                        results[size_percent][cor_subj] = {}
+                    for cor_type, corr in cor_subj_data.items():
+                        if cor_type not in results[size_percent][cor_subj]:
+                            results[size_percent][cor_subj][cor_type] = []
+                        results[size_percent][cor_subj][cor_type].append(corr)
+        res_file = os.path.join(out_folder, "res_file.json")
+        load.common_fs.dumpJSON(results, res_file, pretty=True)
 
-    exclude_nan = True
-    if exclude_nan:
-        print("# INFO: Excluding nan correlation for med")
-    for size_percent in results:
-        results_median[size_percent] = {}
-        for cor_subj in results[size_percent]:
-            results_median[size_percent][cor_subj] = {}
-            for cor_type in results[size_percent][cor_subj]:
-                if exclude_nan:
-                    c_vals = [x['corr'] for x in results[size_percent][cor_subj][cor_type] if not np.isnan(x['corr'])]
-                else:
-                    c_vals = [x['corr'] for x in results[size_percent][cor_subj][cor_type]]
-                med_vals = { 
-                               'min':np.quantile(c_vals, 0),
-                               '1st-Qt':np.quantile(c_vals, 0.25),
-                               'med':np.quantile(c_vals, 0.5),
-                               '3rd-Qt':np.quantile(c_vals, 0.75),
-                               'max':np.quantile(c_vals, 1), 
-                               'avg':sum(c_vals) * 1.0 / len(c_vals), 
-                           }
-                results_median[size_percent][cor_subj][cor_type] = med_vals
-    meds_res_file = os.path.join(out_folder, "res_file_meds.json")
-    load.common_fs.dumpJSON(results_median, meds_res_file, pretty=True)
+        exclude_nan = True
+        if exclude_nan:
+            print("# INFO: Excluding nan correlation for med")
+        for size_percent in results:
+            results_median[size_percent] = {}
+            for cor_subj in results[size_percent]:
+                results_median[size_percent][cor_subj] = {}
+                for cor_type in results[size_percent][cor_subj]:
+                    if exclude_nan:
+                        c_vals = [x['corr'] for x in results[size_percent][cor_subj][cor_type] if not np.isnan(x['corr'])]
+                    else:
+                        c_vals = [x['corr'] for x in results[size_percent][cor_subj][cor_type]]
+                    med_vals = { 
+                                   'min':np.quantile(c_vals, 0),
+                                   '1st-Qt':np.quantile(c_vals, 0.25),
+                                   'med':np.quantile(c_vals, 0.5),
+                                   '3rd-Qt':np.quantile(c_vals, 0.75),
+                                   'max':np.quantile(c_vals, 1), 
+                                   'avg':sum(c_vals) * 1.0 / len(c_vals), 
+                               }
+                    results_median[size_percent][cor_subj][cor_type] = med_vals
+        meds_res_file = os.path.join(out_folder, "res_file_meds.json")
+        load.common_fs.dumpJSON(results_median, meds_res_file, pretty=True)
                 
-    print("\n# COMPUTING SIMULATIONS ...\n")
+    if not NO_SIMULATION:
+        print("\n# COMPUTING SIMULATIONS ...\n")
 
-    scenario = 'independent_kill'
-    nRepeat = 100
+        INDEPENDENT_KILL = 'independent_kill'
+        COLLATERALLY_KILL = "collaterally_kill"
+        #scenario = INDEPENDENT_KILL
+        scenario = COLLATERALLY_KILL
+        nRepeat = 100
 
-    sim_cache_file = os.path.join(out_folder, "sim_cache_file.{}.json".format(scenario))
-    if os.path.isfile (sim_cache_file):
-        randomAll_rMS, randomKillable_rMS, randomRelevant_rMS, randomAll_FR, randomKillable_FR, randomRelevant_FR = load.common_fs.loadJSON(sim_cache_file)
-    else:
-        randomAll_rMS = {}
-        randomKillable_rMS = {}
-        randomRelevant_rMS = {}
-        randomAll_FR = {}
-        randomKillable_FR = {}
-        randomRelevant_FR = {}
-        for ind, proj in enumerate(order):
-            print ("processing project {}/{} ...".format(ind+1, len(order)))
+        sim_cache_file = os.path.join(out_folder, "sim_cache_file.{}.json".format(scenario))
+        if os.path.isfile (sim_cache_file):
+            randomAll_rMS, randomKillable_rMS, randomRelevant_rMS, randomAll_FR, randomKillable_FR, randomRelevant_FR = load.common_fs.loadJSON(sim_cache_file)
+        else:
+            randomAll_rMS = {}
+            randomKillable_rMS = {}
+            randomRelevant_rMS = {}
+            randomAll_FR = {}
+            randomKillable_FR = {}
+            randomRelevant_FR = {}
+            for ind, proj in enumerate(order):
+                print ("processing project {}/{} ...".format(ind+1, len(order)))
 
-            fr_tests = set(fault_tests[proj])
-            tests_killing_relevant_muts = set()
-            for m, tl in relevant_mutants_to_relevant_tests[proj].items():
-                tests_killing_relevant_muts |= set(tl)
+                proj_tests_to_killed_relevant_muts = {}
+                for m in relevant_mutants_to_relevant_tests:
+                    kill_tests = mutants_to_killingtests[m]
+                    for t in kill_tests:
+                        if t not in proj_tests_to_killed_relevant_muts:
+                            proj_tests_to_killed_relevant_muts[t] = set()
+                        proj_tests_to_killed_relevant_muts[t].add(m)
 
-            allMuts = list(mutants_to_killingtests[proj])
-            killableMutants = [m for m, kt in mutants_to_killingtests[proj].items() if len(kt) > 0]
-            relevantMuts = list(relevant_mutants_to_relevant_tests[proj])
-            randomAll_rMS[proj] = []
-            randomKillable_rMS[proj] = []
-            randomRelevant_rMS[proj] = []
-            randomAll_FR[proj] = []
-            randomKillable_FR[proj] = []
-            randomRelevant_FR[proj] = []
-            for i in tqdm.tqdm(range(nRepeat)):
-                allMuts.shuffle()
-                killableMutants.shuffle()
-                relevantMuts.shuffle()
-                # compute the incremental relevant score and fault detection
-                for inList, outTopList_rMS, outTopList_FR in [(allMuts, randomAll_rMS[proj], randomAll_FR[proj]), \
-                                                                (killableMutants, randomKillable_rMS[proj], randomKillable_FR[proj]), \
-                                                                (relevantMuts, randomRelevant_rMS[proj], randomRelevant_FR[proj])]:
-                    tmp_rMS = []
-                    tmp_FR = []
-                    seen_fr_tests = set()
-                    killed_relevant_muts_set = set()
-                    for mut in inList:  # TODO: Consider other scenarios
-                        kts = mutants_to_killingtests[mut]
-                        if len(kts) != 0:
-                            # pick a killing test
-                            t = random.choice(kts)
+                fr_tests = set(fault_tests[proj])
+                tests_killing_relevant_muts = set()
+                for m, tl in relevant_mutants_to_relevant_tests[proj].items():
+                    tests_killing_relevant_muts |= set(tl)
 
-                            # set FR and rMS
-                            if t in tests_killing_relevant_muts:
-                                killed_relevant_muts_set |= set(tests_to_killed_mutants[t])
-                            if t in fr_tests:
-                                seen_fr_tests.add(t)
-                        tmp_FR.append(len(seen_fr_tests))
-                        tmp_rMS.append(len(killed_relevant_muts_set) * 1.0 / len(relevantMuts))
+                allMuts = list(mutants_to_killingtests[proj])
+                killableMutants = [m for m, kt in mutants_to_killingtests[proj].items() if len(kt) > 0]
+                relevantMuts = list(relevant_mutants_to_relevant_tests[proj])
+                randomAll_rMS[proj] = []
+                randomKillable_rMS[proj] = []
+                randomRelevant_rMS[proj] = []
+                randomAll_FR[proj] = []
+                randomKillable_FR[proj] = []
+                randomRelevant_FR[proj] = []
+                for i in tqdm.tqdm(range(nRepeat)):
+                    random.shuffle(allMuts)
+                    random.shuffle(killableMutants)
+                    random.shuffle(relevantMuts)
+                    # compute the incremental relevant score and fault detection
+                    for inList, outTopList_rMS, outTopList_FR in [(allMuts, randomAll_rMS[proj], randomAll_FR[proj]), \
+                                                                    (killableMutants, randomKillable_rMS[proj], randomKillable_FR[proj]), \
+                                                                    (relevantMuts, randomRelevant_rMS[proj], randomRelevant_FR[proj])]:
+                        tmp_rMS = []
+                        tmp_FR = []
+                        seen_fr_tests = set()
+                        killed_relevant_muts_set = set()
+                        collaterally_killed = set()
+                        for mut in inList:  # TODO: Consider other scenarios
+                            if scenario == COLLATERALLY_KILL and mut in collaterally_killed:
+                                continue 
+                            kts = mutants_to_killingtests[proj][mut]
+                            if len(kts) != 0:
+                                # pick a killing test
+                                t = random.choice(kts)
+                                if scenario == COLLATERALLY_KILL:
+                                    collaterally_killed |= set(tests_to_killed_mutants[proj][t])
 
-                    outTopList_rMS.append(tmp_rMS)
-                    outTopList_FR.append(tmp_FR)
-        load.common_fs.dumpJSON([randomAll_rMS, randomKillable_rMS, randomRelevant_rMS, randomAll_FR, randomKillable_FR, randomRelevant_FR], sim_cache_file)
+                                # set FR and rMS
+                                if t in proj_tests_to_killed_relevant_muts:
+                                    killed_relevant_muts_set |= set(proj_tests_to_killed_relevant_muts[t])
+                                if t in fr_tests:
+                                    seen_fr_tests.add(t)
+                            tmp_FR.append(len(seen_fr_tests))
+                            tmp_rMS.append(len(killed_relevant_muts_set) * 1.0 / len(relevantMuts))
 
-    # unifirmization
-    minstopat = min([len(rm2tests) for proj, rm2tests in relevant_mutants_to_relevant_tests.items()])
-    maxstopat = max([len(rm2tests) for proj, rm2tests in relevant_mutants_to_relevant_tests.items()])
+                        outTopList_rMS.append(tmp_rMS)
+                        outTopList_FR.append(tmp_FR)
+                        
+            load.common_fs.dumpJSON([randomAll_rMS, randomKillable_rMS, randomRelevant_rMS, randomAll_FR, randomKillable_FR, randomRelevant_FR], sim_cache_file)
 
-    # XXX Aggregate and Plot the data
-    for pc in [0.25, 0.5, 0.75]:
-        ## FR
-        img_file = os.path.join(out_folder, 'FR_PLOT_{}_{}'.format(scenario, pc))
-        allMedToPlot = {'Random': randomAll_FR, 'RandomKillable': randomKillable_FR, 'RandomRelevant': randomRelevant_FR}
-        for k,v in allMedToPlot:
-            allMedToPlot[k] = allmedian_aggregate (v, percentile=pc, stopAt=minstopat)
-        plot.plotTrend(allMedToPlot, img_file, 'Number of Mutants', 'Fault Revelation')
-        ## rMS
-        img_file = os.path.join(out_folder, 'rMS_PLOT_{}_{}'.format(scenario, pc))
-        allMedToPlot = {'Random': randomAll_rMS, 'RandomKillable': randomKillable_rMS, 'RandomRelevant': randomRelevant_rMS}
-        for k,v in allMedToPlot:
-            allMedToPlot[k] = allmedian_aggregate (v, percentile=pc, stopAt=minstopat)
-        plot.plotTrend(allMedToPlot, img_file, 'Number of Mutants', 'Relevant Mutation Score')
+        # unifirmization
+        minstopat = 999999999999
+        maxstopat = 0
+        for l in (randomAll_rMS, randomKillable_rMS, randomRelevant_rMS, randomAll_FR, randomKillable_FR, randomRelevant_FR):
+            for p,d in l.items():
+                for e_list in d:
+                    minstopat = min(minstopat, len(e_list))
+                    maxstopat = max(maxstopat, len(e_list))
+
+        # XXX Aggregate and Plot the data
+        for pc in [0.25, 0.5, 0.75]:
+            ## FR
+            img_file = os.path.join(out_folder, 'FR_PLOT_{}_{}'.format(scenario, pc))
+            allMedToPlot = {'Random': randomAll_FR, 'RandomKillable': randomKillable_FR, 'RandomRelevant': randomRelevant_FR}
+            for k,v in allMedToPlot:
+                allMedToPlot[k] = allmedian_aggregate (v, percentile=pc, stopAt=minstopat)
+            plot.plotTrend(allMedToPlot, img_file, 'Number of Mutants', 'Fault Revelation')
+            ## rMS
+            img_file = os.path.join(out_folder, 'rMS_PLOT_{}_{}'.format(scenario, pc))
+            allMedToPlot = {'Random': randomAll_rMS, 'RandomKillable': randomKillable_rMS, 'RandomRelevant': randomRelevant_rMS}
+            for k,v in allMedToPlot:
+                allMedToPlot[k] = allmedian_aggregate (v, percentile=pc, stopAt=minstopat)
+            plot.plotTrend(allMedToPlot, img_file, 'Number of Mutants', 'Relevant Mutation Score')
+
+        # Box
+        #groupedData = {i: flattened_data
+        #plot.plot_Box_Grouped(groupedData, imagefile, colors_bw, ylabel
 
     print("@DONE!")
 #~ def main()
