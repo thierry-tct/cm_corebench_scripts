@@ -23,6 +23,28 @@ def error_exit(err):
     exit(1)
 #~def error_exit()
 
+def repetavg_and_proj_proportion_aggregate (proj2repetlists, stopAt=None):
+    projlist = list(proj2repetlists)
+    size = len(proj2repetlists[projlist[0]][0])
+    if stopAt is not None and size > stopAt:
+        size = stopAt
+    res = {}
+    for i in range(size):
+        key = i+1
+        res[key] = 0
+        for proj, pdat in proj2repetlists.items():
+            plist = []
+            for rep_dat in pdat:
+                if key not in res:
+                    res[key] = []
+                plist.append(rep_dat[i])
+        
+            res[key] += sum(plist) * 1.0 / len(plist)
+        res[key] = res[key] * 1.0 / len(proj2repetlists)
+
+    return res
+#~ def repetavg_and_proj_sum_aggregate()
+
 def allmedian_aggregate (proj2repetlists, percentile=0.5, stopAt=None):
     ''' return a key value, where keys are indexes and values the values
     '''
@@ -35,6 +57,8 @@ def allmedian_aggregate (proj2repetlists, percentile=0.5, stopAt=None):
         key = i+1
         for proj, pdat in proj2repetlists.items():
             for rep_dat in pdat:
+                if key not in res:
+                    res[key] = []
                 res[key].append(rep_dat[i])
         
         res[key] = np.quantile(res[key], percentile)
@@ -306,108 +330,109 @@ def main():
 
         INDEPENDENT_KILL = 'independent_kill'
         COLLATERALLY_KILL = "collaterally_kill"
-        #scenario = INDEPENDENT_KILL
-        scenario = COLLATERALLY_KILL
-        nRepeat = 100
+        for scenario in [COLLATERALLY_KILL, INDEPENDENT_KILL]:
+            nRepeat = 200
 
-        sim_cache_file = os.path.join(out_folder, "sim_cache_file.{}.json".format(scenario))
-        if os.path.isfile (sim_cache_file):
-            randomAll_rMS, randomKillable_rMS, randomRelevant_rMS, randomAll_FR, randomKillable_FR, randomRelevant_FR = load.common_fs.loadJSON(sim_cache_file)
-        else:
-            randomAll_rMS = {}
-            randomKillable_rMS = {}
-            randomRelevant_rMS = {}
-            randomAll_FR = {}
-            randomKillable_FR = {}
-            randomRelevant_FR = {}
-            for ind, proj in enumerate(order):
-                print ("processing project {}/{} ...".format(ind+1, len(order)))
+            sim_cache_file = os.path.join(out_folder, "sim_cache_file.{}.json".format(scenario))
+            if os.path.isfile (sim_cache_file):
+                randomAll_rMS, randomKillable_rMS, randomRelevant_rMS, randomAll_FR, randomKillable_FR, randomRelevant_FR = load.common_fs.loadJSON(sim_cache_file)
+            else:
+                randomAll_rMS = {}
+                randomKillable_rMS = {}
+                randomRelevant_rMS = {}
+                randomAll_FR = {}
+                randomKillable_FR = {}
+                randomRelevant_FR = {}
+                for ind, proj in enumerate(order):
+                    print ("processing project {}/{} ...".format(ind+1, len(order)))
 
-                proj_tests_to_killed_relevant_muts = {}
-                for m in relevant_mutants_to_relevant_tests:
-                    kill_tests = mutants_to_killingtests[m]
-                    for t in kill_tests:
-                        if t not in proj_tests_to_killed_relevant_muts:
-                            proj_tests_to_killed_relevant_muts[t] = set()
-                        proj_tests_to_killed_relevant_muts[t].add(m)
+                    proj_tests_to_killed_relevant_muts = {}
+                    for m in relevant_mutants_to_relevant_tests[proj]:
+                        kill_tests = mutants_to_killingtests[proj][m]
+                        for t in kill_tests:
+                            if t not in proj_tests_to_killed_relevant_muts:
+                                proj_tests_to_killed_relevant_muts[t] = set()
+                            proj_tests_to_killed_relevant_muts[t].add(m)
 
-                fr_tests = set(fault_tests[proj])
-                tests_killing_relevant_muts = set()
-                for m, tl in relevant_mutants_to_relevant_tests[proj].items():
-                    tests_killing_relevant_muts |= set(tl)
+                    fr_tests = set(fault_tests[proj])
+                    tests_killing_relevant_muts = set()
+                    for m, tl in relevant_mutants_to_relevant_tests[proj].items():
+                        tests_killing_relevant_muts |= set(tl)
 
-                allMuts = list(mutants_to_killingtests[proj])
-                killableMutants = [m for m, kt in mutants_to_killingtests[proj].items() if len(kt) > 0]
-                relevantMuts = list(relevant_mutants_to_relevant_tests[proj])
-                randomAll_rMS[proj] = []
-                randomKillable_rMS[proj] = []
-                randomRelevant_rMS[proj] = []
-                randomAll_FR[proj] = []
-                randomKillable_FR[proj] = []
-                randomRelevant_FR[proj] = []
-                for i in tqdm.tqdm(range(nRepeat)):
-                    random.shuffle(allMuts)
-                    random.shuffle(killableMutants)
-                    random.shuffle(relevantMuts)
-                    # compute the incremental relevant score and fault detection
-                    for inList, outTopList_rMS, outTopList_FR in [(allMuts, randomAll_rMS[proj], randomAll_FR[proj]), \
-                                                                    (killableMutants, randomKillable_rMS[proj], randomKillable_FR[proj]), \
-                                                                    (relevantMuts, randomRelevant_rMS[proj], randomRelevant_FR[proj])]:
-                        tmp_rMS = []
-                        tmp_FR = []
-                        seen_fr_tests = set()
-                        killed_relevant_muts_set = set()
-                        collaterally_killed = set()
-                        for mut in inList:  # TODO: Consider other scenarios
-                            if scenario == COLLATERALLY_KILL and mut in collaterally_killed:
-                                continue 
-                            kts = mutants_to_killingtests[proj][mut]
-                            if len(kts) != 0:
-                                # pick a killing test
-                                t = random.choice(kts)
-                                if scenario == COLLATERALLY_KILL:
-                                    collaterally_killed |= set(tests_to_killed_mutants[proj][t])
+                    allMuts = list(mutants_to_killingtests[proj])
+                    killableMutants = [m for m, kt in mutants_to_killingtests[proj].items() if len(kt) > 0]
+                    relevantMuts = list(relevant_mutants_to_relevant_tests[proj])
+                    randomAll_rMS[proj] = []
+                    randomKillable_rMS[proj] = []
+                    randomRelevant_rMS[proj] = []
+                    randomAll_FR[proj] = []
+                    randomKillable_FR[proj] = []
+                    randomRelevant_FR[proj] = []
+                    for i in tqdm.tqdm(range(nRepeat)):
+                        random.shuffle(allMuts)
+                        random.shuffle(killableMutants)
+                        random.shuffle(relevantMuts)
+                        # compute the incremental relevant score and fault detection
+                        for inList, outTopList_rMS, outTopList_FR in [(allMuts, randomAll_rMS[proj], randomAll_FR[proj]), \
+                                                                        (killableMutants, randomKillable_rMS[proj], randomKillable_FR[proj]), \
+                                                                        (relevantMuts, randomRelevant_rMS[proj], randomRelevant_FR[proj])]:
+                            tmp_rMS = []
+                            tmp_FR = []
+                            seen_fr_tests = set()
+                            killed_relevant_muts_set = set()
+                            collaterally_killed = set()
+                            for mut in inList:  # TODO: Consider other scenarios
+                                if scenario == COLLATERALLY_KILL and mut in collaterally_killed:
+                                    continue 
+                                kts = mutants_to_killingtests[proj][mut]
+                                if len(kts) != 0:
+                                    # pick a killing test
+                                    t = random.choice(kts)
+                                    if scenario == COLLATERALLY_KILL:
+                                        collaterally_killed |= set(tests_to_killed_mutants[proj][t])
 
-                                # set FR and rMS
-                                if t in proj_tests_to_killed_relevant_muts:
-                                    killed_relevant_muts_set |= set(proj_tests_to_killed_relevant_muts[t])
-                                if t in fr_tests:
-                                    seen_fr_tests.add(t)
-                            tmp_FR.append(len(seen_fr_tests))
-                            tmp_rMS.append(len(killed_relevant_muts_set) * 1.0 / len(relevantMuts))
+                                    # set FR and rMS
+                                    if t in proj_tests_to_killed_relevant_muts:
+                                        killed_relevant_muts_set |= set(proj_tests_to_killed_relevant_muts[t])
+                                    if t in fr_tests:
+                                        seen_fr_tests.add(t)
+                                tmp_FR.append(int(len(seen_fr_tests) > 0))
+                                tmp_rMS.append(len(killed_relevant_muts_set) * 1.0 / len(relevantMuts))
 
-                        outTopList_rMS.append(tmp_rMS)
-                        outTopList_FR.append(tmp_FR)
-                        
-            load.common_fs.dumpJSON([randomAll_rMS, randomKillable_rMS, randomRelevant_rMS, randomAll_FR, randomKillable_FR, randomRelevant_FR], sim_cache_file)
+                            outTopList_rMS.append(tmp_rMS)
+                            outTopList_FR.append(tmp_FR)
+                            
+                load.common_fs.dumpJSON([randomAll_rMS, randomKillable_rMS, randomRelevant_rMS, randomAll_FR, randomKillable_FR, randomRelevant_FR], sim_cache_file)
 
-        # unifirmization
-        minstopat = 999999999999
-        maxstopat = 0
-        for l in (randomAll_rMS, randomKillable_rMS, randomRelevant_rMS, randomAll_FR, randomKillable_FR, randomRelevant_FR):
-            for p,d in l.items():
-                for e_list in d:
-                    minstopat = min(minstopat, len(e_list))
-                    maxstopat = max(maxstopat, len(e_list))
+            # unifirmization
+            minstopat = 999999999999
+            maxstopat = 0
+            for l in (randomAll_rMS, randomKillable_rMS, randomRelevant_rMS, randomAll_FR, randomKillable_FR, randomRelevant_FR):
+                for p,d in l.items():
+                    for e_list in d:
+                        minstopat = min(minstopat, len(e_list))
+                        maxstopat = max(maxstopat, len(e_list))
+            print("# minstopat is {}, maxstopat is {}".format(minstopat, maxstopat))
 
-        # XXX Aggregate and Plot the data
-        for pc in [0.25, 0.5, 0.75]:
+            # XXX Aggregate and Plot the data
+            order = ['RandomRelevant', 'Random', 'RandomKillable']
             ## FR
-            img_file = os.path.join(out_folder, 'FR_PLOT_{}_{}'.format(scenario, pc))
+            img_file = os.path.join(out_folder, 'FR_PLOT_{}'.format(scenario))
             allMedToPlot = {'Random': randomAll_FR, 'RandomKillable': randomKillable_FR, 'RandomRelevant': randomRelevant_FR}
-            for k,v in allMedToPlot:
-                allMedToPlot[k] = allmedian_aggregate (v, percentile=pc, stopAt=minstopat)
-            plot.plotTrend(allMedToPlot, img_file, 'Number of Mutants', 'Fault Revelation')
-            ## rMS
-            img_file = os.path.join(out_folder, 'rMS_PLOT_{}_{}'.format(scenario, pc))
-            allMedToPlot = {'Random': randomAll_rMS, 'RandomKillable': randomKillable_rMS, 'RandomRelevant': randomRelevant_rMS}
-            for k,v in allMedToPlot:
-                allMedToPlot[k] = allmedian_aggregate (v, percentile=pc, stopAt=minstopat)
-            plot.plotTrend(allMedToPlot, img_file, 'Number of Mutants', 'Relevant Mutation Score')
+            for k,v in allMedToPlot.items():
+                allMedToPlot[k] = repetavg_and_proj_proportion_aggregate (v, stopAt=minstopat)
+            plot.plotTrend(allMedToPlot, img_file, 'Number of Mutants', 'Fault Revelation', order=order)
+            for pc in [0.25, 0.5, 0.75]:
+                ## rMS
+                img_file = os.path.join(out_folder, 'rMS_PLOT_{}_{}'.format(scenario, pc))
+                allMedToPlot = {'Random': randomAll_rMS, 'RandomKillable': randomKillable_rMS, 'RandomRelevant': randomRelevant_rMS}
+                for k,v in allMedToPlot.items():
+                    allMedToPlot[k] = allmedian_aggregate (v, percentile=pc, stopAt=minstopat)
+                plot.plotTrend(allMedToPlot, img_file, 'Number of Mutants', 'Relevant Mutation Score', order=order)
 
-        # Box
-        #groupedData = {i: flattened_data
-        #plot.plot_Box_Grouped(groupedData, imagefile, colors_bw, ylabel
+            # Box
+            #groupedData = {i: flattened_data
+            #plot.plot_Box_Grouped(groupedData, imagefile, colors_bw, ylabel
 
     print("@DONE!")
 #~ def main()

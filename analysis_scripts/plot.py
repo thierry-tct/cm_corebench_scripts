@@ -1,8 +1,14 @@
+import numpy as np
 import matplotlib
 matplotlib.use('Agg') # Plot when using ssh -X (avoid server ... error)
 
 import matplotlib.pyplot as plt
 import seaborn as sns
+
+colors_bw = ['white', 'whitesmoke', 'lightgray', 'silver', 'darkgrey', 'gray', 'dimgrey', "black"]
+colors = ["green", 'blue', 'red', "black", "maroon", "magenta", "cyan"]
+linestyles = ['solid', 'solid', 'dashed', 'dashed', 'dashdot', 'dotted', 'solid']
+linewidths = [1.75, 1.75, 2.5, 2.5, 3.25, 3.75, 2]
 
 def plotTrend(name_to_data, image_file, xlabel, ylabel, order=None):
     if order is None:
@@ -25,7 +31,8 @@ def plotTrend(name_to_data, image_file, xlabel, ylabel, order=None):
         plt.plot(plotobj[tech]['x'], plotobj[tech]['y'], color=colors[ti], linestyle=linestyles[ti], linewidth=linewidths[ti], label=tech, alpha=0.8)
     plt.ylabel(ylabel, fontsize=fontsize)
     plt.xlabel(xlabel, fontsize=fontsize)
-    plt.xticks(range(1, maxx+1, maxx/10) if (maxx % 10 == 0 or type(maxx) == int) else np.arange(1,maxx+1, maxx/10.0), fontsize=fontsize-5)
+    step = int(min(maxx, 10))
+    plt.xticks(range(1, maxx+1, int(maxx/step)) if (maxx % step == 0 or type(maxx) == int) else np.arange(1,maxx+1, maxx/float(step)), fontsize=fontsize-5)
     plt.yticks(np.arange(0,1.01,0.2), fontsize=fontsize-5)
     legendMode=1 if len(order) <= 3 else 2
     if legendMode==1:
