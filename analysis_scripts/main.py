@@ -330,8 +330,8 @@ def main():
 
         INDEPENDENT_KILL = 'independent_kill'
         COLLATERALLY_KILL = "collaterally_kill"
-        for scenario in [COLLATERALLY_KILL, INDEPENDENT_KILL]:
-            nRepeat = 200
+        for scenario in [COLLATERALLY_KILL]: #, INDEPENDENT_KILL]:
+            nRepeat = 100
 
             sim_cache_file = os.path.join(out_folder, "sim_cache_file.{}.json".format(scenario))
             if os.path.isfile (sim_cache_file):
@@ -414,18 +414,26 @@ def main():
                         maxstopat = max(maxstopat, len(e_list))
             print("# minstopat is {}, maxstopat is {}".format(minstopat, maxstopat))
 
+            if scenario == COLLATERALLY_KILL:
+                # normalize to 0-100
+                minstopat = 101
+                for l in (randomAll_rMS, randomKillable_rMS, randomRelevant_rMS, randomAll_FR, randomKillable_FR, randomRelevant_FR):
+                    for p,d in l.items():
+                        for _ind in range(len(d)):
+                             d[_ind] = normalized_x(d[_ind])
+
             # XXX Aggregate and Plot the data
-            order = ['RandomRelevant', 'Random', 'RandomKillable']
+            order = ['RandomRelevant', 'Random']
             ## FR
             img_file = os.path.join(out_folder, 'FR_PLOT_{}'.format(scenario))
-            allMedToPlot = {'Random': randomAll_FR, 'RandomKillable': randomKillable_FR, 'RandomRelevant': randomRelevant_FR}
+            allMedToPlot = {'Random': randomAll_FR, 'RandomRelevant': randomRelevant_FR}
             for k,v in allMedToPlot.items():
                 allMedToPlot[k] = repetavg_and_proj_proportion_aggregate (v, stopAt=minstopat)
             plot.plotTrend(allMedToPlot, img_file, 'Number of Mutants', 'Fault Revelation', order=order)
             for pc in [0.25, 0.5, 0.75]:
                 ## rMS
                 img_file = os.path.join(out_folder, 'rMS_PLOT_{}_{}'.format(scenario, pc))
-                allMedToPlot = {'Random': randomAll_rMS, 'RandomKillable': randomKillable_rMS, 'RandomRelevant': randomRelevant_rMS}
+                allMedToPlot = {'Random': randomAll_rMS, 'RandomRelevant': randomRelevant_rMS}
                 for k,v in allMedToPlot.items():
                     allMedToPlot[k] = allmedian_aggregate (v, percentile=pc, stopAt=minstopat)
                 plot.plotTrend(allMedToPlot, img_file, 'Number of Mutants', 'Relevant Mutation Score', order=order)
@@ -436,6 +444,35 @@ def main():
 
     print("@DONE!")
 #~ def main()
+
+def normalized_x(arr):
+    l = len(arr)
+    step = l/100.0
+
+    if step >= 1:
+        ret = []
+        next_p = 1
+        for ind in range(len(arr)):
+            if (ind+1) / step >= next_p:
+                ret.append(arr[ind])
+                next_p += 1
+        if len(ret) == 99:
+            ret.append(arr[-1])
+    else:
+        ret = []
+        next_p = 1
+        ind = 0
+        for v in arr:
+            while ind < next_p:
+                ret.append(v)
+                ind += step
+            next_p += 1
+    if len(ret) > 100:
+        print (len(arr), len(ret), 'PB')
+        #error_exit('PB')
+
+    return ret
+#~ def normalize()
 
 if __name__ == "__main__":
     main()
