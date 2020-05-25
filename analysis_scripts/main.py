@@ -276,10 +276,10 @@ def main():
     print("\n# COMPUTING SIMULATIONS ...\n")
 
     scenario = 'independent_kill'
-    nRepeat = 10000
+    nRepeat = 100
 
     sim_cache_file = os.path.join(out_folder, "sim_cache_file.{}.json".format(scenario))
-    if os.path.isfile (sim_cache_file)
+    if os.path.isfile (sim_cache_file):
         randomAll_rMS, randomKillable_rMS, randomRelevant_rMS, randomAll_FR, randomKillable_FR, randomRelevant_FR = load.common_fs.loadJSON(sim_cache_file)
     else:
         randomAll_rMS = {}
