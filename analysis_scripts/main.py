@@ -355,7 +355,7 @@ def main():
     mutant_on_commit_file = os.path.join(in_top_dir, 'Corebench_mutantsinpatch.json')
     proj2mutoncommit = None
     if os.path.isfile(mutant_on_commit_file):
-        proj2mutoncommit = common_fs.loadJSON(mutant_on_commit_file)
+        proj2mutoncommit = load.common_fs.loadJSON(mutant_on_commit_file)
 
     if not NO_SIMULATION:
         print("\n# COMPUTING SIMULATIONS ...\n")
