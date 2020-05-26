@@ -482,9 +482,9 @@ def main():
                 load.common_fs.dumpCSV(pd.DataFrame(stat_dat), stat_file, separator=',')
 
             # XXX Aggregate and Plot the data
-            order = ['Relevant', 'Random']
+            plot_order = ['Relevant', 'Random']
             if proj2mutoncommit is not None:
-                order.append("RandomOnCommit")
+                plot_order.append("RandomOnCommit")
 
             ## FR
             img_file = os.path.join(out_folder, 'FR_PLOT_{}'.format(scenario))
@@ -493,23 +493,16 @@ def main():
                 allMedToPlot['RandomOnCommit'] = randomOnCommit_FR
             for k,v in allMedToPlot.items():
                 allMedToPlot[k] = repetavg_and_proj_proportion_aggregate (v, stopAt=minstopat)
-            plot.plotTrend(allMedToPlot, img_file, x_label, 'Fault Revelation', order=order)
-            for pc in [0.25, 0.5, 0.75]:
+            plot.plotTrend(allMedToPlot, img_file, x_label, 'Fault Revelation', order=plot_order)
+            for pc, pc_name in {0:'min', 0.25: '1stQuantile', 0.5: 'median', 0.75: '3rdQuantile', 1: 'max'}.items():
                 ## rMS
-                pc_name = 'median'
-                if pc == 0.25:
-                    pc_name = '1stQuantile'
-                elif pc == 0.75:
-                    pc_name = '3rdQuantile'
-                elif pc != 0.5:
-                    pc_name = pc
                 img_file = os.path.join(out_folder, 'rMS_PLOT_{}_{}'.format(scenario, pc_name))
                 allMedToPlot = {'Random': randomAll_rMS, 'Relevant': randomRelevant_rMS}
                 if proj2mutoncommit is not None:
-                    allMedToPlot['RandomOnCommit'] = randomOnCommit_FR
+                    allMedToPlot['RandomOnCommit'] = randomOnCommit_rMS
                 for k,v in allMedToPlot.items():
                     allMedToPlot[k] = allmedian_aggregate (v, percentile=pc, stopAt=minstopat)
-                plot.plotTrend(allMedToPlot, img_file, x_label, 'Relevant Mutation Score', order=order)
+                plot.plotTrend(allMedToPlot, img_file, x_label, 'Relevant Mutation Score', order=plot_order)
 
             # Box
             #groupedData = {i: flattened_data
