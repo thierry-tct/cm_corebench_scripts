@@ -350,6 +350,13 @@ def main():
         meds_res_file = os.path.join(out_folder, "res_file_meds.json")
         load.common_fs.dumpJSON(results_median, meds_res_file, pretty=True)
                 
+
+    # Mutants on commit
+    mutant_on_commit_file = os.path.join(in_top_dir, 'Corebench_mutantsinpatch.json')
+    proj2mutoncommit = None
+    if os.path.isfile(mutant_on_commit_file):
+        proj2mutoncommit = common_fs.loadJSON(mutant_on_commit_file)
+
     if not NO_SIMULATION:
         print("\n# COMPUTING SIMULATIONS ...\n")
 
@@ -360,13 +367,15 @@ def main():
 
             sim_cache_file = os.path.join(out_folder, "sim_cache_file.{}.json".format(scenario))
             if os.path.isfile (sim_cache_file):
-                randomAll_rMS, randomKillable_rMS, randomRelevant_rMS, randomAll_FR, randomKillable_FR, randomRelevant_FR = load.common_fs.loadJSON(sim_cache_file)
+                randomAll_rMS, randomKillable_rMS, randomOnCommit_rMS, randomRelevant_rMS, randomAll_FR, randomKillable_FR, randomOnCommit_FR, randomRelevant_FR = load.common_fs.loadJSON(sim_cache_file)
             else:
                 randomAll_rMS = {}
                 randomKillable_rMS = {}
+                randomOnCommit_rMS = {}
                 randomRelevant_rMS = {}
                 randomAll_FR = {}
                 randomKillable_FR = {}
+                randomOnCommit_FR = {}
                 randomRelevant_FR = {}
                 for ind, proj in enumerate(order):
                     print ("processing project {}/{} ...".format(ind+1, len(order)))
@@ -386,12 +395,16 @@ def main():
 
                     allMuts = list(mutants_to_killingtests[proj])
                     killableMutants = [m for m, kt in mutants_to_killingtests[proj].items() if len(kt) > 0]
+                    onCommitMutants = list(proj2mutoncommit[proj]) if proj2mutoncommit is not None else []
                     relevantMuts = list(relevant_mutants_to_relevant_tests[proj])
+
                     randomAll_rMS[proj] = []
                     randomKillable_rMS[proj] = []
+                    randomOnCommit_rMS[proj] = []
                     randomRelevant_rMS[proj] = []
                     randomAll_FR[proj] = []
                     randomKillable_FR[proj] = []
+                    randomOnCommit_FR[proj] = []
                     randomRelevant_FR[proj] = []
                     for i in tqdm.tqdm(range(nRepeat)):
                         random.shuffle(allMuts)
@@ -400,6 +413,7 @@ def main():
                         # compute the incremental relevant score and fault detection
                         for inList, outTopList_rMS, outTopList_FR in [(allMuts, randomAll_rMS[proj], randomAll_FR[proj]), \
                                                                         (killableMutants, randomKillable_rMS[proj], randomKillable_FR[proj]), \
+                                                                        (onCommitMutants, randomOnCommit_rMS[proj], randomOnCommit_FR[proj]), \
                                                                         (relevantMuts, randomRelevant_rMS[proj], randomRelevant_FR[proj])]:
                             tmp_rMS = []
                             tmp_FR = []
@@ -427,12 +441,14 @@ def main():
                             outTopList_rMS.append(tmp_rMS)
                             outTopList_FR.append(tmp_FR)
                             
-                load.common_fs.dumpJSON([randomAll_rMS, randomKillable_rMS, randomRelevant_rMS, randomAll_FR, randomKillable_FR, randomRelevant_FR], sim_cache_file)
+                load.common_fs.dumpJSON([randomAll_rMS, randomKillable_rMS, randomOnCommit_rMS, randomRelevant_rMS, randomAll_FR, randomKillable_FR, randomOnCommit_FR, randomRelevant_FR], sim_cache_file)
 
             with_random_killable = False
             data_lists = (randomAll_rMS, randomRelevant_rMS, randomAll_FR, randomRelevant_FR)
             if with_random_killable:
                 data_lists = data_lists + (randomKillable_rMS, randomKillable_FR)
+            if proj2mutoncommit is not None:
+                data_lists = data_lists + (randomOnCommit_rMS, randomOnCommit_FR)
 
             # unifirmization
             minstopat = 999999999999
@@ -453,14 +469,28 @@ def main():
 
             # XXX: Change this if normalize_data_x changes ()
             stat_dat = stat_test (randomRelevant_FR, randomRelevant_rMS, 'Relevant', randomAll_FR, randomAll_rMS, 'Random')
-            stat_file = os.path.join(out_folder, "stat_test.csv")
+            stat_file = os.path.join(out_folder, "RelevantVSRandom-stat_test.csv")
             load.common_fs.dumpCSV(pd.DataFrame(stat_dat), stat_file, separator=',')
+
+            if proj2mutoncommit is not None:
+                stat_dat = stat_test (randomRelevant_FR, randomRelevant_rMS, 'Relevant', randomOnCommit_FR, randomOnCommit_rMS, 'RandomOnCommit')
+                stat_file = os.path.join(out_folder, "RelevantVSOncommit-stat_test.csv")
+                load.common_fs.dumpCSV(pd.DataFrame(stat_dat), stat_file, separator=',')
+
+                stat_dat = stat_test (randomOnCommit_FR, randomOnCommit_rMS, 'RandomOnCommit', randomAll_FR, randomAll_rMS, 'Random')
+                stat_file = os.path.join(out_folder, "OncommitVSRandom-stat_test.csv")
+                load.common_fs.dumpCSV(pd.DataFrame(stat_dat), stat_file, separator=',')
 
             # XXX Aggregate and Plot the data
             order = ['Relevant', 'Random']
+            if proj2mutoncommit is not None:
+                order.append("RandomOnCommit")
+
             ## FR
             img_file = os.path.join(out_folder, 'FR_PLOT_{}'.format(scenario))
             allMedToPlot = {'Random': randomAll_FR, 'Relevant': randomRelevant_FR}
+            if proj2mutoncommit is not None:
+                allMedToPlot['RandomOnCommit'] = randomOnCommit_FR
             for k,v in allMedToPlot.items():
                 allMedToPlot[k] = repetavg_and_proj_proportion_aggregate (v, stopAt=minstopat)
             plot.plotTrend(allMedToPlot, img_file, x_label, 'Fault Revelation', order=order)
@@ -475,6 +505,8 @@ def main():
                     pc_name = pc
                 img_file = os.path.join(out_folder, 'rMS_PLOT_{}_{}'.format(scenario, pc_name))
                 allMedToPlot = {'Random': randomAll_rMS, 'Relevant': randomRelevant_rMS}
+                if proj2mutoncommit is not None:
+                    allMedToPlot['RandomOnCommit'] = randomOnCommit_FR
                 for k,v in allMedToPlot.items():
                     allMedToPlot[k] = allmedian_aggregate (v, percentile=pc, stopAt=minstopat)
                 plot.plotTrend(allMedToPlot, img_file, x_label, 'Relevant Mutation Score', order=order)
