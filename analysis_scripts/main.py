@@ -474,11 +474,11 @@ def main():
 
             if proj2mutoncommit is not None:
                 stat_dat = stat_test (randomRelevant_FR, randomRelevant_rMS, 'Relevant', randomOnCommit_FR, randomOnCommit_rMS, 'Modification')
-                stat_file = os.path.join(out_folder, "RelevantVSOncommit-stat_test.csv")
+                stat_file = os.path.join(out_folder, "RelevantVSModification-stat_test.csv")
                 load.common_fs.dumpCSV(pd.DataFrame(stat_dat), stat_file, separator=',')
 
                 stat_dat = stat_test (randomOnCommit_FR, randomOnCommit_rMS, 'Modification', randomAll_FR, randomAll_rMS, 'Random')
-                stat_file = os.path.join(out_folder, "OncommitVSRandom-stat_test.csv")
+                stat_file = os.path.join(out_folder, "ModificationVSRandom-stat_test.csv")
                 load.common_fs.dumpCSV(pd.DataFrame(stat_dat), stat_file, separator=',')
 
             # XXX Aggregate and Plot the data
