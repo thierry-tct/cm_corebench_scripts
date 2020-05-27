@@ -473,24 +473,24 @@ def main():
             load.common_fs.dumpCSV(pd.DataFrame(stat_dat), stat_file, separator=',')
 
             if proj2mutoncommit is not None:
-                stat_dat = stat_test (randomRelevant_FR, randomRelevant_rMS, 'Relevant', randomOnCommit_FR, randomOnCommit_rMS, 'RandomOnCommit')
+                stat_dat = stat_test (randomRelevant_FR, randomRelevant_rMS, 'Relevant', randomOnCommit_FR, randomOnCommit_rMS, 'Modification')
                 stat_file = os.path.join(out_folder, "RelevantVSOncommit-stat_test.csv")
                 load.common_fs.dumpCSV(pd.DataFrame(stat_dat), stat_file, separator=',')
 
-                stat_dat = stat_test (randomOnCommit_FR, randomOnCommit_rMS, 'RandomOnCommit', randomAll_FR, randomAll_rMS, 'Random')
+                stat_dat = stat_test (randomOnCommit_FR, randomOnCommit_rMS, 'Modification', randomAll_FR, randomAll_rMS, 'Random')
                 stat_file = os.path.join(out_folder, "OncommitVSRandom-stat_test.csv")
                 load.common_fs.dumpCSV(pd.DataFrame(stat_dat), stat_file, separator=',')
 
             # XXX Aggregate and Plot the data
             plot_order = ['Relevant', 'Random']
             if proj2mutoncommit is not None:
-                plot_order.append("RandomOnCommit")
+                plot_order.append("Modification")
 
             ## FR
             img_file = os.path.join(out_folder, 'FR_PLOT_{}'.format(scenario))
             allMedToPlot = {'Random': randomAll_FR, 'Relevant': randomRelevant_FR}
             if proj2mutoncommit is not None:
-                allMedToPlot['RandomOnCommit'] = randomOnCommit_FR
+                allMedToPlot['Modification'] = randomOnCommit_FR
             for k,v in allMedToPlot.items():
                 allMedToPlot[k] = repetavg_and_proj_proportion_aggregate (v, stopAt=minstopat)
             plot.plotTrend(allMedToPlot, img_file, x_label, 'Fault Revelation', order=plot_order)
@@ -499,7 +499,7 @@ def main():
                 img_file = os.path.join(out_folder, 'rMS_PLOT_{}_{}'.format(scenario, pc_name))
                 allMedToPlot = {'Random': randomAll_rMS, 'Relevant': randomRelevant_rMS}
                 if proj2mutoncommit is not None:
-                    allMedToPlot['RandomOnCommit'] = randomOnCommit_rMS
+                    allMedToPlot['Modification'] = randomOnCommit_rMS
                 for k,v in allMedToPlot.items():
                     allMedToPlot[k] = allmedian_aggregate (v, percentile=pc, stopAt=minstopat)
                 plot.plotTrend(allMedToPlot, img_file, x_label, 'Relevant Mutation Score', order=plot_order)
