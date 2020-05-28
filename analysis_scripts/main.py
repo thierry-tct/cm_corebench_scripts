@@ -465,7 +465,17 @@ def main():
                 # normalize to 0-100
                 x_label = "Percentage of Mutants"
                 minstopat = 100
-                normalize_data_x(data_lists, relevant_dat=randomRelevant_FR)
+                size_per_proj = normalize_data_x(data_lists, relevant_dat=randomRelevant_FR)
+                avg_proportion = [size_per_proj[p] * 1.0 / len(mutants_to_killingtests[p]) for p in size_per_proj]
+                avg_proportion = sum(avg_proportion) / len(avg_proportion)
+                avg_num = [size_per_proj[p] for p in size_per_proj]
+                avg_num = sum(avg_num) * 1.0 / len(avg_num)
+                print ("\n# ALL MUTANTS >  AVG plot Proportion: {} AVG plot Number {}".format(avg_proportion, avg_num))
+                avg_proportion = [size_per_proj[p] * 1.0 / len([m for m, t in mutants_to_killingtests[p].items() if len(t) > 0]) for p in size_per_proj]
+                avg_proportion = sum(avg_proportion) / len(avg_proportion)
+                avg_num = [size_per_proj[p] for p in size_per_proj]
+                avg_num = sum(avg_num) * 1.0 / len(avg_num)
+                print ("\n# KILLABLE MUTANTS > AVG plot Proportion: {} AVG plot Number {}".format(avg_proportion, avg_num))
 
             # XXX: Change this if normalize_data_x changes ()
             stat_dat = stat_test (randomRelevant_FR, randomRelevant_rMS, 'Relevant', randomAll_FR, randomAll_rMS, 'Random')
@@ -514,6 +524,7 @@ def main():
 def normalize_data_x(data_lists, relevant_dat=None, use_med=False):
     # Default use min
 
+    size_per_proj = {}
     for proj in data_lists[0]:
         if relevant_dat is None:
             min_max_len = len(data_lists[0][proj][0])
@@ -533,7 +544,8 @@ def normalize_data_x(data_lists, relevant_dat=None, use_med=False):
                 else:
                     del rep_dat[min_max_len:]
                 dl[proj][ind] = normalized_x(rep_dat)
-
+        size_per_proj[proj] = min_max_len
+    return size_per_proj
 #~ def normalize_data_x()
 
 def normalized_x(arr):
