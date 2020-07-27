@@ -273,13 +273,15 @@ def main():
     # Load predicted if set
     proj_to_pred_mut_to_relscore = None
     if relmut_pred_file is not None:
-        pred_raw = loadJSON(relmut_pred_file)
+        pred_raw = load.common_fs.loadJSON(relmut_pred_file)
         proj_to_pred_mut_to_relscore = {}
         for proj, dat in pred_raw.items():
             proj = proj.split("_")[1]
             proj_to_pred_mut_to_relscore[proj] = {}
             for mut, oracle, pred in dat:
                 mut = ":".join(['mart_0', mut])
+                if mut not in mutants_to_killingtests[proj]:
+                    continue
                 proj_to_pred_mut_to_relscore[proj][mut] = pred
                 if oracle == 1:
                     assert mut in relevant_mutants_to_relevant_tests[proj], "mutant remote relevant but not local ({})".format(mut)
@@ -460,6 +462,7 @@ def main():
                             for mut in inList:  # TODO: Consider other scenarios
                                 if scenario == COLLATERALLY_KILL and mut in collaterally_killed:
                                     continue 
+                                #print(list(mutants_to_killingtests[proj]))
                                 kts = mutants_to_killingtests[proj][mut]
                                 if len(kts) != 0:
                                     # pick a killing test
