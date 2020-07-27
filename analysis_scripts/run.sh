@@ -24,6 +24,12 @@ if [ $# -eq 2 ]; then
     in_docker=1
 fi
 
+pred_file=""
+if [ "${WITH_PREDICTION:-}" == "ON" ]; then
+    echo "DBG: With prediction is ON ...."
+    pred_file=/work_in/prediction-testscore_.json
+fi
+
 if [ $in_docker -eq 1 ]
 then
     docker_image_name="maweimarvin/cm"
@@ -31,9 +37,9 @@ then
                                          --mount type=bind,src=$in_top_dir,dst=/work_in \
                                          --mount type=bind,src=$out_top_dir,dst=/work_out \
                                          --mount type=bind,src=$TOPDIR,dst=/work_script \
-                                         --user 1000:1000 --privileged $docker_image_name bash -c "pip install seaborn; python /work_script/main.py /work_in /work_out"    
+                                         --user 1000:1000 --privileged $docker_image_name bash -c "pip install seaborn; python /work_script/main.py /work_in /work_out $pred_file"    
 else
-    python3 $TOPDIR/main.py $in_top_dir $out_top_dir || error_exit "Execution failed"
+    python3 $TOPDIR/main.py $in_top_dir $out_top_dir $pred_file || error_exit "Execution failed"
 fi
 
 echo "@run.sh: DONE!"

@@ -235,8 +235,14 @@ def compute(kwargs):
 #~ def compute()
 
 def main():
+    relmut_pred_file = None
     if len(sys.argv) != 3:
-        error_exit("expected 3 args. got {}". format(len(sys.argv)))
+        if len(sys.argv) == 4:
+            relmut_pred_file = os.path.abspath(sys.argv[3])
+            if not os.path.isfile(relmut_pred_file):
+                error_exit("relmut_pred_file not existing")
+        else:
+            error_exit("expected 3 args. got {}". format(len(sys.argv)))
     in_top_dir = os.path.abspath(sys.argv[1])
     out_top_dir = os.path.abspath(sys.argv[2])
     if not os.path.isdir(in_top_dir):
@@ -263,6 +269,23 @@ def main():
     all_tests, fault_tests, relevant_mutants_to_relevant_tests, mutants_to_killingtests, tests_to_killed_mutants = \
 								              load_data(in_top_dir, tmpdir, cache_file)
     shutil.rmtree(tmpdir)
+
+    # Load predicted if set
+    proj_to_pred_mut_to_relscore = None
+    if relmut_pred_file is not None:
+        pred_raw = loadJSON(relmut_pred_file)
+        proj_to_pred_mut_to_relscore = {}
+        for proj, dat in pred_raw.items():
+            proj = proj.split("_")[1]
+            proj_to_pred_mut_to_relscore[proj] = {}
+            for mut, oracle, pred in dat:
+                mut = ":".join(['mart_0', mut])
+                proj_to_pred_mut_to_relscore[proj][mut] = pred
+                if oracle == 1:
+                    assert mut in relevant_mutants_to_relevant_tests[proj], "mutant remote relevant but not local ({})".format(mut)
+                else:
+                    assert mut not in relevant_mutants_to_relevant_tests[proj], "mutant remote non-relevant but not local ({})".format(mut)
+            
     
     # update parallel_count
     parallel_count = min(parallel_count, len(all_tests))
@@ -277,6 +300,8 @@ def main():
     
     # organize the data
     order = sorted(list(all_tests.keys()))
+    if proj_to_pred_mut_to_relscore is not None:
+        order = list(proj_to_pred_mut_to_relscore)
     data = [{
                 'sample_count': sample_count,
                 'all_tests': all_tests[i],
@@ -367,16 +392,21 @@ def main():
 
             sim_cache_file = os.path.join(out_folder, "sim_cache_file.{}.json".format(scenario))
             if os.path.isfile (sim_cache_file):
-                randomAll_rMS, randomKillable_rMS, randomOnCommit_rMS, randomRelevant_rMS, randomAll_FR, randomKillable_FR, randomOnCommit_FR, randomRelevant_FR = load.common_fs.loadJSON(sim_cache_file)
+                if proj_to_pred_mut_to_relscore is None:
+                    randomAll_rMS, randomKillable_rMS, randomOnCommit_rMS, randomRelevant_rMS, randomAll_FR, randomKillable_FR, randomOnCommit_FR, randomRelevant_FR = load.common_fs.loadJSON(sim_cache_file)
+                else:
+                    randomAll_rMS, randomKillable_rMS, randomOnCommit_rMS, randomRelevant_rMS, predictedRelevant_rMS, randomAll_FR, randomKillable_FR, randomOnCommit_FR, randomRelevant_FR, predictedRelevant_FR = load.common_fs.loadJSON(sim_cache_file)
             else:
                 randomAll_rMS = {}
                 randomKillable_rMS = {}
                 randomOnCommit_rMS = {}
                 randomRelevant_rMS = {}
+                predictedRelevant_rMS = {}
                 randomAll_FR = {}
                 randomKillable_FR = {}
                 randomOnCommit_FR = {}
                 randomRelevant_FR = {}
+                predictedRelevant_FR = {}
                 for ind, proj in enumerate(order):
                     print ("processing project {}/{} ...".format(ind+1, len(order)))
 
@@ -397,24 +427,31 @@ def main():
                     killableMutants = [m for m, kt in mutants_to_killingtests[proj].items() if len(kt) > 0]
                     onCommitMutants = list(proj2mutoncommit[proj]) if proj2mutoncommit is not None else []
                     relevantMuts = list(relevant_mutants_to_relevant_tests[proj])
+                    predictedMuts = list(proj_to_pred_mut_to_relscore[proj])
 
                     randomAll_rMS[proj] = []
                     randomKillable_rMS[proj] = []
                     randomOnCommit_rMS[proj] = []
                     randomRelevant_rMS[proj] = []
+                    predictedRelevant_rMS[proj] = []
                     randomAll_FR[proj] = []
                     randomKillable_FR[proj] = []
                     randomOnCommit_FR[proj] = []
                     randomRelevant_FR[proj] = []
+                    predictedRelevant_FR[proj] = []
                     for i in tqdm.tqdm(range(nRepeat)):
                         random.shuffle(allMuts)
                         random.shuffle(killableMutants)
                         random.shuffle(relevantMuts)
-                        # compute the incremental relevant score and fault detection
-                        for inList, outTopList_rMS, outTopList_FR in [(allMuts, randomAll_rMS[proj], randomAll_FR[proj]), \
+                        workList = [(allMuts, randomAll_rMS[proj], randomAll_FR[proj]), \
                                                                         (killableMutants, randomKillable_rMS[proj], randomKillable_FR[proj]), \
                                                                         (onCommitMutants, randomOnCommit_rMS[proj], randomOnCommit_FR[proj]), \
-                                                                        (relevantMuts, randomRelevant_rMS[proj], randomRelevant_FR[proj])]:
+                                                                        (relevantMuts, randomRelevant_rMS[proj], randomRelevant_FR[proj])]
+                        if proj_to_pred_mut_to_relscore is not None:
+                            predictedMuts.sort(reverse=True, key=lambda m: (proj_to_pred_mut_to_relscore[proj][m], random.random()))
+                            workList.append((predictedMuts, predictedRelevant_rMS[proj], predictedRelevant_FR[proj]))
+                        # compute the incremental relevant score and fault detection
+                        for inList, outTopList_rMS, outTopList_FR in workList:
                             tmp_rMS = []
                             tmp_FR = []
                             seen_fr_tests = set()
@@ -441,7 +478,10 @@ def main():
                             outTopList_rMS.append(tmp_rMS)
                             outTopList_FR.append(tmp_FR)
                             
-                load.common_fs.dumpJSON([randomAll_rMS, randomKillable_rMS, randomOnCommit_rMS, randomRelevant_rMS, randomAll_FR, randomKillable_FR, randomOnCommit_FR, randomRelevant_FR], sim_cache_file)
+                if proj_to_pred_mut_to_relscore is None:
+                    load.common_fs.dumpJSON([randomAll_rMS, randomKillable_rMS, randomOnCommit_rMS, randomRelevant_rMS, randomAll_FR, randomKillable_FR, randomOnCommit_FR, randomRelevant_FR], sim_cache_file)
+                else:
+                    load.common_fs.dumpJSON([randomAll_rMS, randomKillable_rMS, randomOnCommit_rMS, randomRelevant_rMS, predictedRelevant_rMS, randomAll_FR, randomKillable_FR, randomOnCommit_FR, randomRelevant_FR, predictedRelevant_FR], sim_cache_file)
 
             with_random_killable = False
             data_lists = (randomAll_rMS, randomRelevant_rMS, randomAll_FR, randomRelevant_FR)
@@ -449,6 +489,8 @@ def main():
                 data_lists = data_lists + (randomKillable_rMS, randomKillable_FR)
             if proj2mutoncommit is not None:
                 data_lists = data_lists + (randomOnCommit_rMS, randomOnCommit_FR)
+            if proj_to_pred_mut_to_relscore is not None:
+                data_lists = data_lists + (predictedRelevant_rMS, predictedRelevant_FR)
 
             # unifirmization
             minstopat = 999999999999
@@ -491,16 +533,29 @@ def main():
                 stat_file = os.path.join(out_folder, "ModificationVSRandom-stat_test.csv")
                 load.common_fs.dumpCSV(pd.DataFrame(stat_dat), stat_file, separator=',')
 
+            if proj_to_pred_mut_to_relscore is not None:
+                stat_dat = stat_test (randomRelevant_FR, randomRelevant_rMS, 'Relevant', predictedRelevant_FR, predictedRelevant_rMS, 'Prediction')
+                stat_file = os.path.join(out_folder, "RelevantVSPrediction-stat_test.csv")
+                load.common_fs.dumpCSV(pd.DataFrame(stat_dat), stat_file, separator=',')
+
+                stat_dat = stat_test (predictedRelevant_FR, predictedRelevant_rMS, 'Prediction', randomAll_FR, randomAll_rMS, 'Random')
+                stat_file = os.path.join(out_folder, "PredictionVSRandom-stat_test.csv")
+                load.common_fs.dumpCSV(pd.DataFrame(stat_dat), stat_file, separator=',')
+
             # XXX Aggregate and Plot the data
             plot_order = ['Relevant', 'Random']
             if proj2mutoncommit is not None:
                 plot_order.append("Modification")
+            if proj_to_pred_mut_to_relscore is not None:
+                plot_order.append("Prediction")
 
             ## FR
             img_file = os.path.join(out_folder, 'FR_PLOT_{}'.format(scenario))
             allMedToPlot = {'Random': randomAll_FR, 'Relevant': randomRelevant_FR}
             if proj2mutoncommit is not None:
                 allMedToPlot['Modification'] = randomOnCommit_FR
+            if proj_to_pred_mut_to_relscore is not None:
+                allMedToPlot['Prediction'] = predictedRelevant_FR
             for k,v in allMedToPlot.items():
                 allMedToPlot[k] = repetavg_and_proj_proportion_aggregate (v, stopAt=minstopat)
             plot.plotTrend(allMedToPlot, img_file, x_label, 'Fault Revelation', order=plot_order)
@@ -510,6 +565,8 @@ def main():
                 allMedToPlot = {'Random': randomAll_rMS, 'Relevant': randomRelevant_rMS}
                 if proj2mutoncommit is not None:
                     allMedToPlot['Modification'] = randomOnCommit_rMS
+                if proj_to_pred_mut_to_relscore is not None:
+                    allMedToPlot['Prediction'] = randomOnCommit_rMS
                 for k,v in allMedToPlot.items():
                     allMedToPlot[k] = allmedian_aggregate (v, percentile=pc, stopAt=minstopat)
                 plot.plotTrend(allMedToPlot, img_file, x_label, 'Relevant Mutation Score', order=plot_order)

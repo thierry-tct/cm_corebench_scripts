@@ -7,7 +7,7 @@ import seaborn as sns
 
 colors_bw = ['white', 'whitesmoke', 'lightgray', 'silver', 'darkgrey', 'gray', 'dimgrey', "black"]
 colors = ["green", 'blue', 'red', "black", "maroon", "magenta", "cyan"]
-linestyles = ['solid', 'solid', 'dashed', 'dashed', 'dashdot', 'dotted', 'solid']
+linestyles = ['solid', 'dashdot', 'dashed', 'dashed', 'dashdot', 'dotted', 'solid']
 linewidths = [1.75, 1.75, 2.5, 2.5, 3.25, 3.75, 2]
 
 def plotTrend(name_to_data, image_file, xlabel, ylabel, order=None):
