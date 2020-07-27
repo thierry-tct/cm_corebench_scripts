@@ -569,7 +569,7 @@ def main():
                 if proj2mutoncommit is not None:
                     allMedToPlot['Modification'] = randomOnCommit_rMS
                 if proj_to_pred_mut_to_relscore is not None:
-                    allMedToPlot['Prediction'] = randomOnCommit_rMS
+                    allMedToPlot['Prediction'] = predictedRelevant_rMS
                 for k,v in allMedToPlot.items():
                     allMedToPlot[k] = allmedian_aggregate (v, percentile=pc, stopAt=minstopat)
                 plot.plotTrend(allMedToPlot, img_file, x_label, 'Relevant Mutation Score', order=plot_order)
