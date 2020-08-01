@@ -278,6 +278,8 @@ def main():
         for proj, dat in pred_raw.items():
             proj = proj.split("_")[1]
             proj_to_pred_mut_to_relscore[proj] = {}
+            if type(dat) == dict:
+                dat = dat['score']
             for mut, oracle, pred in dat:
                 mut = ":".join(['mart_0', mut])
                 if mut not in mutants_to_killingtests[proj]:
@@ -391,6 +393,8 @@ def main():
         COLLATERALLY_KILL = "collaterally_kill"
         for scenario in [COLLATERALLY_KILL]: #, INDEPENDENT_KILL]:
             nRepeat = 100
+            if proj_to_pred_mut_to_relscore is not None:
+                nRepeat = 1000
 
             sim_cache_file = os.path.join(out_folder, "sim_cache_file.{}.json".format(scenario))
             if os.path.isfile (sim_cache_file):

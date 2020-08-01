@@ -1,4 +1,5 @@
 #! /bin/bash
+# WITH_PREDICTION=ON /media/disk2/CONTINUOUS_MUTATION/executions/cm_corebench_scripts/analysis_scripts/run.sh . docker
 
 set -u
 
@@ -28,6 +29,7 @@ pred_file=""
 if [ "${WITH_PREDICTION:-}" == "ON" ]; then
     echo "DBG: With prediction is ON ...."
     pred_file=/work_in/prediction-testscore_.json
+    pred_file=/work_in/prediction-testscore_ALL.json
 fi
 
 if [ $in_docker -eq 1 ]
