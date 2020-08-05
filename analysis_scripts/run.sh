@@ -26,10 +26,10 @@ if [ $# -eq 2 ]; then
 fi
 
 pred_file=""
-if [ "${WITH_PREDICTION:-}" == "ON" ]; then
-    echo "DBG: With prediction is ON ...."
-    pred_file=/work_in/prediction-testscore_.json
-    pred_file=/work_in/prediction-testscore_ALL.json
+if [ "${WITH_PREDICTION:-}" != "" ]; then
+    echo "DBG: With prediction is $WITH_PREDICTION ...."
+    pred_file=/work_in/$WITH_PREDICTION
+    test -f $in_top_dir/$WITH_PREDICTION || error_exit "pred file $WITH_PREDICTION not existing"
 fi
 
 if [ $in_docker -eq 1 ]

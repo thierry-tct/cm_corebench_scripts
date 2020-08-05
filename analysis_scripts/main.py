@@ -286,9 +286,12 @@ def main():
                     continue
                 proj_to_pred_mut_to_relscore[proj][mut] = pred
                 if oracle == 1:
-                    assert mut in relevant_mutants_to_relevant_tests[proj], "mutant remote relevant but not local ({})".format(mut)
+                    if mut not in relevant_mutants_to_relevant_tests[proj]:
+                        #print("mutant remote relevant but not local ({}). proj is {}".format(mut, proj))
+                        assert False, "mutant remote relevant but not local ({}). proj is {}".format(mut, proj)
                 else:
-                    assert mut not in relevant_mutants_to_relevant_tests[proj], "mutant remote non-relevant but not local ({})".format(mut)
+                    if mut in relevant_mutants_to_relevant_tests[proj]:
+                        assert False, "reltests is {}. mutant remote non-relevant but not local ({}). proj is {}".format(relevant_mutants_to_relevant_tests[proj][mut], mut, proj)
             
     
     # update parallel_count
