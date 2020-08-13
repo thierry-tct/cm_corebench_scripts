@@ -1,5 +1,6 @@
 #! /bin/bash
-# WITH_PREDICTION=ON /media/disk2/CONTINUOUS_MUTATION/executions/cm_corebench_scripts/analysis_scripts/run.sh . docker
+# Run the following command from within the foder that contains the tar files
+# WITH_PREDICTION=cross_validation.json /media/disk2/CONTINUOUS_MUTATION/executions/cm_corebench_scripts/analysis_scripts/run.sh . docker
 
 set -u
 
