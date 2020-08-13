@@ -6,6 +6,7 @@ import multiprocessing
 import random
 import glob
 import shutil
+import copy
 
 import tqdm
 import scipy.stats
@@ -293,6 +294,11 @@ def main():
                     if mut in relevant_mutants_to_relevant_tests[proj]:
                         assert False, "reltests is {}. mutant remote non-relevant but not local ({}). proj is {}".format(relevant_mutants_to_relevant_tests[proj][mut], mut, proj)
             
+    for pp_1, pp_2 in [('cr-12', 'cr-17'), ('cr-5', 'cr-16')]:
+        if pp_1 in proj_to_pred_mut_to_relscore and pp_2 not in proj_to_pred_mut_to_relscore:
+            proj_to_pred_mut_to_relscore[pp_2] = copy.deepcopy(proj_to_pred_mut_to_relscore[pp_1])
+        if pp_2 in proj_to_pred_mut_to_relscore and pp_1 not in proj_to_pred_mut_to_relscore:
+            proj_to_pred_mut_to_relscore[pp_1] = copy.deepcopy(proj_to_pred_mut_to_relscore[pp_2])
     
     # update parallel_count
     parallel_count = min(parallel_count, len(all_tests))
