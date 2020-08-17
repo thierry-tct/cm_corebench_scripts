@@ -607,7 +607,7 @@ def main():
             for proj, p_data in allMedToPlot.items():
                 apfd_data[proj] = []
                 for rep_data in p_data:
-                    _apfd_val = np.trapz(rep_data) * 1.0 / (len(rep_data) - 1)
+                    _apfd_val = np.trapz(rep_data) * 100.0 / (len(rep_data) - 1)
                     apfd_data[proj].append(_apfd_val)
             medians = plot.plotBoxes(allMedToPlot, plot_order, area_FR_plot_data_img_file, colors_bw, ylabel="APFD", yticks_range=range(0,101,20), fontsize=26, title=None)
             load.common_fs.dumpJSON(medians, apfd_FR_median_file)
