@@ -598,9 +598,19 @@ def main():
             if proj_to_pred_mut_to_relscore is not None:
                 allMedToPlot['Prediction'] = predictedRelevant_FR
                 
-            # Save raw data
-            raw_FR_plot_data_file = os.path.join(out_folder, "raw_FR_plot_data_{}".format(scenario))
+            # Save raw data and plot boxes
+            raw_FR_plot_data_json_file = os.path.join(out_folder, "raw_FR_plot_data_{}.json".format(scenario))
             load.common_fs.dumpJSON(allMedToPlot, raw_FR_plot_data_file)
+            apfd_FR_plot_data_img_file = os.path.join(out_folder, "apfd_FR_plot_data_{}".format(scenario))
+            apfd_FR_median_file = os.path.join(out_folder, "apfd_FR_median_{}.json".format(scenario))
+            apfd_data = {}
+            for proj, p_data in allMedToPlot.items():
+                apfd_data[proj] = []
+                for rep_data in p_data:
+                    _apfd_val = np.trapz(rep_data) * 1.0 / (len(rep_data) - 1)
+                    apfd_data[proj].append(_apfd_val)
+            medians = plot.plotBoxes(allMedToPlot, plot_order, area_FR_plot_data_img_file, colors_bw, ylabel="APFD", yticks_range=range(0,101,20), fontsize=26, title=None)
+            load.common_fs.dumpJSON(medians, apfd_FR_median_file)
             
             for k,v in allMedToPlot.items():
                 allMedToPlot[k] = repetavg_and_proj_proportion_aggregate (v, stopAt=minstopat)
