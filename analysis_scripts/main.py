@@ -524,20 +524,32 @@ def main():
 
             x_label = 'Number of Mutants'
             if scenario == COLLATERALLY_KILL:
-                # normalize to 0-100
-                x_label = "Percentage of Mutants"
-                minstopat = 100
-                size_per_proj = normalize_data_x(data_lists, relevant_dat=(None if NO_RELEVANT_IN_PLOT else randomRelevant_FR))
-                avg_proportion = [size_per_proj[p] * 1.0 / len(mutants_to_killingtests[p]) for p in size_per_proj]
-                avg_proportion = sum(avg_proportion) / len(avg_proportion)
-                avg_num = [size_per_proj[p] for p in size_per_proj]
-                avg_num = sum(avg_num) * 1.0 / len(avg_num)
-                print ("\n# ALL MUTANTS >  AVG plot Proportion: {} AVG plot Number {}".format(avg_proportion, avg_num))
-                avg_proportion = [size_per_proj[p] * 1.0 / len([m for m, t in mutants_to_killingtests[p].items() if len(t) > 0]) for p in size_per_proj]
-                avg_proportion = sum(avg_proportion) / len(avg_proportion)
-                avg_num = [size_per_proj[p] for p in size_per_proj]
-                avg_num = sum(avg_num) * 1.0 / len(avg_num)
-                print ("\n# KILLABLE MUTANTS > AVG plot Proportion: {} AVG plot Number {}".format(avg_proportion, avg_num))
+                if STOP_AT_N_MUTANTS is not None:
+                    assert STOP_AT_N_MUTANTS > 0
+                    # Stop at STOP_AT_N_MUTANTS
+                    print ("\n# Stop at", STOP_AT_N_MUTANTS)
+                    for dl in data_lists:
+                        for ind, rep_dat in enumerate(dl[proj]):
+                            to_add = [rep_dat[-1]] * (STOP_AT_N_MUTANTS - len(rep_dat))
+                            if to_add:
+                                rep_dat.extend(to_add)
+                            else:
+                                del rep_dat[STOP_AT_N_MUTANTS:]
+                else:
+                    # normalize to 0-100
+                    x_label = "Percentage of Mutants"
+                    minstopat = 100
+                    size_per_proj = normalize_data_x(data_lists, relevant_dat=(None if NO_RELEVANT_IN_PLOT else randomRelevant_FR))
+                    avg_proportion = [size_per_proj[p] * 1.0 / len(mutants_to_killingtests[p]) for p in size_per_proj]
+                    avg_proportion = sum(avg_proportion) / len(avg_proportion)
+                    avg_num = [size_per_proj[p] for p in size_per_proj]
+                    avg_num = sum(avg_num) * 1.0 / len(avg_num)
+                    print ("\n# ALL MUTANTS >  AVG plot Proportion: {} AVG plot Number {}".format(avg_proportion, avg_num))
+                    avg_proportion = [size_per_proj[p] * 1.0 / len([m for m, t in mutants_to_killingtests[p].items() if len(t) > 0]) for p in size_per_proj]
+                    avg_proportion = sum(avg_proportion) / len(avg_proportion)
+                    avg_num = [size_per_proj[p] for p in size_per_proj]
+                    avg_num = sum(avg_num) * 1.0 / len(avg_num)
+                    print ("\n# KILLABLE MUTANTS > AVG plot Proportion: {} AVG plot Number {}".format(avg_proportion, avg_num))
 
             # XXX: Change this if normalize_data_x changes ()
             if not NO_RELEVANT_IN_PLOT:
