@@ -525,6 +525,7 @@ def main():
             x_label = 'Number of Mutants'
             if scenario == COLLATERALLY_KILL:
                 if STOP_AT_N_MUTANTS is not None:
+                    minstopat = STOP_AT_N_MUTANTS
                     assert STOP_AT_N_MUTANTS > 0
                     # Stop at STOP_AT_N_MUTANTS
                     print ("\n# Stop at", STOP_AT_N_MUTANTS)
