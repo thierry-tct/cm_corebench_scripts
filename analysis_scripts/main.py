@@ -597,6 +597,11 @@ def main():
                 allMedToPlot['Modification'] = randomOnCommit_FR
             if proj_to_pred_mut_to_relscore is not None:
                 allMedToPlot['Prediction'] = predictedRelevant_FR
+                
+            # Save raw data
+            raw_FR_plot_data_file = os.path.join(out_folder, "raw_FR_plot_data_{}".format(scenario))
+            load.common_fs.dumpJSON(allMedToPlot, raw_FR_plot_data_file)
+            
             for k,v in allMedToPlot.items():
                 allMedToPlot[k] = repetavg_and_proj_proportion_aggregate (v, stopAt=minstopat)
             plot.plotTrend(allMedToPlot, img_file, x_label, 'Fault Revelation', order=plot_order)
