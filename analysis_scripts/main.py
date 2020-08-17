@@ -502,7 +502,9 @@ def main():
                     load.common_fs.dumpJSON([randomAll_rMS, randomKillable_rMS, randomOnCommit_rMS, randomRelevant_rMS, predictedRelevant_rMS, randomAll_FR, randomKillable_FR, randomOnCommit_FR, randomRelevant_FR, predictedRelevant_FR], sim_cache_file)
 
             with_random_killable = False
-            data_lists = (randomAll_rMS, randomRelevant_rMS, randomAll_FR, randomRelevant_FR)
+            data_lists = (randomAll_rMS, randomAll_FR)
+            if not NO_RELEVANT_IN_PLOT:
+                data_lists = data_lists + (randomRelevant_rMS, randomRelevant_FR)
             if with_random_killable:
                 data_lists = data_lists + (randomKillable_rMS, randomKillable_FR)
             if proj2mutoncommit is not None:
@@ -510,7 +512,7 @@ def main():
             if proj_to_pred_mut_to_relscore is not None:
                 data_lists = data_lists + (predictedRelevant_rMS, predictedRelevant_FR)
 
-            # unifirmization
+            # uniformization
             minstopat = 999999999999
             maxstopat = 0
             for l in data_lists:
@@ -525,7 +527,7 @@ def main():
                 # normalize to 0-100
                 x_label = "Percentage of Mutants"
                 minstopat = 100
-                size_per_proj = normalize_data_x(data_lists, relevant_dat=randomRelevant_FR)
+                size_per_proj = normalize_data_x(data_lists, relevant_dat=(None if NO_RELEVANT_IN_PLOT else randomRelevant_FR))
                 avg_proportion = [size_per_proj[p] * 1.0 / len(mutants_to_killingtests[p]) for p in size_per_proj]
                 avg_proportion = sum(avg_proportion) / len(avg_proportion)
                 avg_num = [size_per_proj[p] for p in size_per_proj]
@@ -538,38 +540,46 @@ def main():
                 print ("\n# KILLABLE MUTANTS > AVG plot Proportion: {} AVG plot Number {}".format(avg_proportion, avg_num))
 
             # XXX: Change this if normalize_data_x changes ()
-            stat_dat = stat_test (randomRelevant_FR, randomRelevant_rMS, 'Relevant', randomAll_FR, randomAll_rMS, 'Random')
-            stat_file = os.path.join(out_folder, "RelevantVSRandom-stat_test.csv")
-            load.common_fs.dumpCSV(pd.DataFrame(stat_dat), stat_file, separator=',')
+            if not NO_RELEVANT_IN_PLOT:
+                stat_dat = stat_test (randomRelevant_FR, randomRelevant_rMS, 'Relevant', randomAll_FR, randomAll_rMS, 'Random')
+                stat_file = os.path.join(out_folder, "RelevantVSRandom-stat_test.csv")
+                load.common_fs.dumpCSV(pd.DataFrame(stat_dat), stat_file, separator=',')
 
             if proj2mutoncommit is not None:
-                stat_dat = stat_test (randomRelevant_FR, randomRelevant_rMS, 'Relevant', randomOnCommit_FR, randomOnCommit_rMS, 'Modification')
-                stat_file = os.path.join(out_folder, "RelevantVSModification-stat_test.csv")
-                load.common_fs.dumpCSV(pd.DataFrame(stat_dat), stat_file, separator=',')
+                if not NO_RELEVANT_IN_PLOT:
+                    stat_dat = stat_test (randomRelevant_FR, randomRelevant_rMS, 'Relevant', randomOnCommit_FR, randomOnCommit_rMS, 'Modification')
+                    stat_file = os.path.join(out_folder, "RelevantVSModification-stat_test.csv")
+                    load.common_fs.dumpCSV(pd.DataFrame(stat_dat), stat_file, separator=',')
 
                 stat_dat = stat_test (randomOnCommit_FR, randomOnCommit_rMS, 'Modification', randomAll_FR, randomAll_rMS, 'Random')
                 stat_file = os.path.join(out_folder, "ModificationVSRandom-stat_test.csv")
                 load.common_fs.dumpCSV(pd.DataFrame(stat_dat), stat_file, separator=',')
 
             if proj_to_pred_mut_to_relscore is not None:
-                stat_dat = stat_test (randomRelevant_FR, randomRelevant_rMS, 'Relevant', predictedRelevant_FR, predictedRelevant_rMS, 'Prediction')
-                stat_file = os.path.join(out_folder, "RelevantVSPrediction-stat_test.csv")
-                load.common_fs.dumpCSV(pd.DataFrame(stat_dat), stat_file, separator=',')
+                if not NO_RELEVANT_IN_PLOT:
+                    stat_dat = stat_test (randomRelevant_FR, randomRelevant_rMS, 'Relevant', predictedRelevant_FR, predictedRelevant_rMS, 'Prediction')
+                    stat_file = os.path.join(out_folder, "RelevantVSPrediction-stat_test.csv")
+                    load.common_fs.dumpCSV(pd.DataFrame(stat_dat), stat_file, separator=',')
 
                 stat_dat = stat_test (predictedRelevant_FR, predictedRelevant_rMS, 'Prediction', randomAll_FR, randomAll_rMS, 'Random')
                 stat_file = os.path.join(out_folder, "PredictionVSRandom-stat_test.csv")
                 load.common_fs.dumpCSV(pd.DataFrame(stat_dat), stat_file, separator=',')
 
             # XXX Aggregate and Plot the data
-            plot_order = ['Relevant', 'Random']
-            if proj2mutoncommit is not None:
-                plot_order.append("Modification")
+            plot_order = []
+            if not NO_RELEVANT_IN_PLOT:
+                plot_order.append('Relevant')
             if proj_to_pred_mut_to_relscore is not None:
                 plot_order.append("Prediction")
+            plot_order.append('Random')
+            if proj2mutoncommit is not None:
+                plot_order.append("Modification")
 
             ## FR
             img_file = os.path.join(out_folder, 'FR_PLOT_{}'.format(scenario))
-            allMedToPlot = {'Random': randomAll_FR, 'Relevant': randomRelevant_FR}
+            allMedToPlot = {'Random': randomAll_FR}
+            if not NO_RELEVANT_IN_PLOT:
+                allMedToPlot['Relevant'] = randomRelevant_FR
             if proj2mutoncommit is not None:
                 allMedToPlot['Modification'] = randomOnCommit_FR
             if proj_to_pred_mut_to_relscore is not None:
@@ -580,7 +590,9 @@ def main():
             for pc, pc_name in {0:'min', 0.25: '1stQuantile', 0.5: 'median', 0.75: '3rdQuantile', 1: 'max'}.items():
                 ## rMS
                 img_file = os.path.join(out_folder, 'rMS_PLOT_{}_{}'.format(scenario, pc_name))
-                allMedToPlot = {'Random': randomAll_rMS, 'Relevant': randomRelevant_rMS}
+                allMedToPlot = {'Random': randomAll_rMS}
+                if not NO_RELEVANT_IN_PLOT:
+                    allMedToPlot['Relevant'] = randomRelevant_rMS
                 if proj2mutoncommit is not None:
                     allMedToPlot['Modification'] = randomOnCommit_rMS
                 if proj_to_pred_mut_to_relscore is not None:
