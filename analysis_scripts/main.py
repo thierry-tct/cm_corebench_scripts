@@ -694,14 +694,16 @@ def normalized_x(arr):
 
 def stat_test (left_FR, left_rMS, left_name, right_FR, right_rMS, right_name):
     res = {}
-    left_fr_list = {i: [] for i in range(1, 101)} 
-    left_rms_list = {i: [] for i in range(1, 101)}
-    right_fr_list = {i: [] for i in range(1, 101)}
-    right_rms_list = {i: [] for i in range(1, 101)}
+    left_fr_list = {} #i: [] for i in range(1, 101)} 
+    left_rms_list = {} #i: [] for i in range(1, 101)}
+    right_fr_list = {} #i: [] for i in range(1, 101)}
+    right_rms_list = {} #i: [] for i in range(1, 101)}
     for in_dat, out_list in [(left_FR, left_fr_list), (left_rMS, left_rms_list), (right_FR, right_fr_list), (right_rMS, right_rms_list)]:
         for proj, dat in in_dat.items():
             for rep_dat in dat:
                 for ind, val in enumerate(rep_dat):
+                    if ind+1 not in out_list:
+                        out_list[ind+1] = []
                     out_list[ind+1].append(val)
     res['proportions'] = range(1,101)
     res['FR-p_value'] = []
