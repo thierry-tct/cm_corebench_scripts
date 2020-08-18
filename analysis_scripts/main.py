@@ -705,7 +705,7 @@ def stat_test (left_FR, left_rMS, left_name, right_FR, right_rMS, right_name):
                     if ind+1 not in out_list:
                         out_list[ind+1] = []
                     out_list[ind+1].append(val)
-    res['proportions'] = range(1,101)
+    res['proportions'] = range(1,1+len(left_fr_list))
     res['FR-p_value'] = []
     res['rMS-p_value'] = []
     res['FR-A12'] = []
