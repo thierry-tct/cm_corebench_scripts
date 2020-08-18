@@ -20,7 +20,7 @@ import plot
 NO_CORRELATION = True
 NO_SIMULATION = False
 NO_RELEVANT_IN_PLOT = True
-STOP_AT_N_MUTANTS = 100 # None
+STOP_AT_N_MUTANTS = 50 #100 # None
 
 def error_exit(err):
     print("@Error: "+err)
