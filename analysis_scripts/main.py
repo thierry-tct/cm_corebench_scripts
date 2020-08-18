@@ -604,12 +604,13 @@ def main():
             apfd_FR_plot_data_img_file = os.path.join(out_folder, "apfd_FR_plot_data_{}".format(scenario))
             apfd_FR_median_file = os.path.join(out_folder, "apfd_FR_medians_{}.json".format(scenario))
             apfd_data = {}
-            for proj, p_data in allMedToPlot.items():
-                apfd_data[proj] = []
-                for rep_data in p_data:
-                    _apfd_val = np.trapz(rep_data) * 100.0 / (len(rep_data) - 1)
-                    apfd_data[proj].append(_apfd_val)
-            medians = plot.plotBoxes(allMedToPlot, plot_order, apfd_FR_plot_data_img_file, colors_bw, ylabel="APFD", yticks_range=range(0,101,20), fontsize=26, title=None)
+            for tech, t_data in allMedToPlot.items():
+                apfd_data[tech] = []
+                for proj, p_data in t_data.items():
+                    for rep_data in p_data:
+                        _apfd_val = np.trapz(rep_data) * 100.0 / (len(rep_data) - 1)
+                        apfd_data[tech].append(_apfd_val)
+            medians = plot.plotBoxes(apfd_data, plot_order, apfd_FR_plot_data_img_file, colors_bw, ylabel="APFD", yticks_range=range(0,101,20), fontsize=26, title=None)
             load.common_fs.dumpJSON(medians, apfd_FR_median_file)
             
             for k,v in allMedToPlot.items():
