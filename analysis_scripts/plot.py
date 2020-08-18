@@ -138,7 +138,7 @@ def plotBoxes(plotobj, order, imagefile, colors_bw, ylabel="APFD", yticks_range=
         wh.set(mew=2)
         
     plt.ylabel(ylabel, fontsize=fontsize)
-    if len(plotobjList) > 2:
+    if len(plotobjList) > 3: #2:
         plt.xticks(fontsize=fontsize, rotation=30, ha='right')
     else:
         plt.xticks(fontsize=fontsize) # do not rotate x ticks
