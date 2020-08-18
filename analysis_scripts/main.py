@@ -405,7 +405,7 @@ def main():
         for scenario in [COLLATERALLY_KILL]: #, INDEPENDENT_KILL]:
             nRepeat = 100
             if proj_to_pred_mut_to_relscore is not None:
-                nRepeat = 1000
+                nRepeat = 400
 
             sim_cache_file = os.path.join(out_folder, "sim_cache_file.{}.json".format(scenario))
             if os.path.isfile (sim_cache_file):
