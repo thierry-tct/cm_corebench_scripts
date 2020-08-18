@@ -608,6 +608,7 @@ def main():
                 apfd_data[tech] = []
                 for proj, p_data in t_data.items():
                     for rep_data in p_data:
+			assert len(rep_data) <= minstopat
                         _apfd_val = np.trapz(rep_data) * 100.0 / (len(rep_data) - 1)
                         apfd_data[tech].append(_apfd_val)
             medians = plot.plotBoxes(apfd_data, plot_order, apfd_FR_plot_data_img_file, plot.colors_bw, ylabel="APFD", yticks_range=range(0,101,20), fontsize=26, title=None)
