@@ -530,12 +530,13 @@ def main():
                     # Stop at STOP_AT_N_MUTANTS
                     print ("\n# Stop at", STOP_AT_N_MUTANTS)
                     for dl in data_lists:
-                        for ind, rep_dat in enumerate(dl[proj]):
-                            to_add = [rep_dat[-1]] * (STOP_AT_N_MUTANTS - len(rep_dat))
-                            if to_add:
-                                rep_dat.extend(to_add)
-                            else:
-                                del rep_dat[STOP_AT_N_MUTANTS:]
+                        for proj, p_data in dl.items():
+                            for ind, rep_dat in enumerate(p_data):
+                                to_add = [rep_dat[-1]] * (STOP_AT_N_MUTANTS - len(rep_dat))
+                                if to_add:
+                                    rep_dat.extend(to_add)
+                                else:
+                                    del rep_dat[STOP_AT_N_MUTANTS:]
                 else:
                     # normalize to 0-100
                     x_label = "Percentage of Mutants"
