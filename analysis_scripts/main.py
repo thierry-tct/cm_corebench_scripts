@@ -51,7 +51,7 @@ def wilcoxon(list1, list2, isranksum=True):
 
 #############################################
 
-def repetavg_and_proj_proportion_aggregate (proj2repetlists, stopAt=None):
+def repetavg_and_proj_proportion_aggregate (proj2repetlists, stopAt=None, agg_median=False):
     projlist = list(proj2repetlists)
     size = len(proj2repetlists[projlist[0]][0])
     if stopAt is not None and size > stopAt:
@@ -59,16 +59,25 @@ def repetavg_and_proj_proportion_aggregate (proj2repetlists, stopAt=None):
     res = {}
     for i in range(size):
         key = i+1
-        res[key] = 0
+        if agg_median:
+            res[key] = []
+        else:
+            res[key] = 0
         for proj, pdat in proj2repetlists.items():
             plist = []
             for rep_dat in pdat:
-                if key not in res:
-                    res[key] = []
+                #if key not in res:
+                #    res[key] = []
                 plist.append(rep_dat[i])
         
-            res[key] += sum(plist) * 1.0 / len(plist)
-        res[key] = res[key] * 1.0 / len(proj2repetlists)
+            if agg_median:
+                res[key].append(sum(plist) * 1.0 / len(plist))
+            else:
+                res[key] += sum(plist) * 1.0 / len(plist)
+        if agg_median:
+            res[key] = np.median(res[key])
+        else:
+            res[key] = res[key] * 1.0 / len(proj2repetlists)
 
     return res
 #~ def repetavg_and_proj_sum_aggregate()
@@ -637,9 +646,9 @@ def main():
             medians = plot.plotBoxes(apfd_data, plot_order, apfd_FR_plot_data_img_file, plot.colors_bw, ylabel="APFD", yticks_range=range(0,101,20), fontsize=26, title=None)
             load.common_fs.dumpJSON(medians, apfd_FR_median_file)
             
-            if not IS_PERCENTAGE_FAULTS:
-                for k,v in allMedToPlot.items():
-                    allMedToPlot[k] = repetavg_and_proj_proportion_aggregate (v, stopAt=minstopat)
+            #if not IS_PERCENTAGE_FAULTS:
+            for k,v in allMedToPlot.items():
+                allMedToPlot[k] = repetavg_and_proj_proportion_aggregate (v, stopAt=minstopat, agg_median=IS_PERCENTAGE_FAULTS)
             plot.plotTrend(allMedToPlot, img_file, x_label, 'Fault Revelation', order=plot_order)
             for pc, pc_name in {0:'min', 0.25: '1stQuantile', 0.5: 'median', 0.75: '3rdQuantile', 1: 'max'}.items():
                 ## rMS
