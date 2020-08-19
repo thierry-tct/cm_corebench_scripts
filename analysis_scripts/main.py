@@ -605,13 +605,21 @@ def main():
             apfd_FR_plot_data_img_file = os.path.join(out_folder, "apfd_FR_plot_data_{}".format(scenario))
             apfd_FR_median_file = os.path.join(out_folder, "apfd_FR_medians_{}.json".format(scenario))
             apfd_data = {}
+            IS_PERCENTAGE_FAULTS = True
             for tech, t_data in allMedToPlot.items():
                 apfd_data[tech] = []
+                tmp_acc = {}
                 for proj, p_data in t_data.items():
-                    for rep_data in p_data:
-			assert len(rep_data) <= minstopat
-                        _apfd_val = np.trapz(rep_data) * 100.0 / (len(rep_data) - 1)
-                        apfd_data[tech].append(_apfd_val)
+                    for rep_ind, rep_data in enumerate(p_data):
+			            assert len(rep_data) <= minstopat
+                        if IS_PERCENTAGE_FAULTS:
+                            if rep_ind not in tmp_acc:
+                                tmp_acc[rep_ind] = list(rep_data)
+                            else:
+                                # TODO: pairwise sum the lists...
+                        else:
+                            _apfd_val = np.trapz(rep_data) * 100.0 / (len(rep_data) - 1)
+                            apfd_data[tech].append(_apfd_val)
             medians = plot.plotBoxes(apfd_data, plot_order, apfd_FR_plot_data_img_file, plot.colors_bw, ylabel="APFD", yticks_range=range(0,101,20), fontsize=26, title=None)
             load.common_fs.dumpJSON(medians, apfd_FR_median_file)
             
