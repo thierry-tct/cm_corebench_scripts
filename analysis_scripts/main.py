@@ -611,7 +611,7 @@ def main():
                 tmp_acc = {}
                 for proj, p_data in t_data.items():
                     for rep_ind, rep_data in enumerate(p_data):
-			            assert len(rep_data) <= minstopat
+                        assert len(rep_data) <= minstopat
                         if IS_PERCENTAGE_FAULTS:
                             if rep_ind not in tmp_acc:
                                 tmp_acc[rep_ind] = list(rep_data)
@@ -621,18 +621,23 @@ def main():
                             _apfd_val = np.trapz(rep_data) * 100.0 / (len(rep_data) - 1)
                             apfd_data[tech].append(_apfd_val)
                 if IS_PERCENTAGE_FAULTS:
+                    meds_up = None
                     for rep_ind, rep_dat in tmp_acc.items():
+                        if meds_up is None:
+                            meds_up = [[] for i in range(len(rep_dat))]
                         for i in range(len(rep_dat)):
                             rep_dat[i] = rep_dat[i] * 1.0 / len(t_data)
+                            meds_up[i].append(rep_dat[i])
                         _apfd_val = np.trapz(rep_dat) * 100.0 / (len(rep_dat) - 1)
                         apfd_data[tech].append(_apfd_val)
                     # set allMedToPlot[tech] to the medians of all that
-                    allMedToPlot[tech] = #TODO
+                    allMedToPlot[tech] = [np.median(v) for v in meds_up]
             medians = plot.plotBoxes(apfd_data, plot_order, apfd_FR_plot_data_img_file, plot.colors_bw, ylabel="APFD", yticks_range=range(0,101,20), fontsize=26, title=None)
             load.common_fs.dumpJSON(medians, apfd_FR_median_file)
             
-            for k,v in allMedToPlot.items():
-                allMedToPlot[k] = repetavg_and_proj_proportion_aggregate (v, stopAt=minstopat)
+            if not IS_PERCENTAGE_FAULTS:
+                for k,v in allMedToPlot.items():
+                    allMedToPlot[k] = repetavg_and_proj_proportion_aggregate (v, stopAt=minstopat)
             plot.plotTrend(allMedToPlot, img_file, x_label, 'Fault Revelation', order=plot_order)
             for pc, pc_name in {0:'min', 0.25: '1stQuantile', 0.5: 'median', 0.75: '3rdQuantile', 1: 'max'}.items():
                 ## rMS
