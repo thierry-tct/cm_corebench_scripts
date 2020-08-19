@@ -642,7 +642,7 @@ def main():
                         _apfd_val = np.trapz(rep_dat) * 100.0 / (len(rep_dat) - 1)
                         apfd_data[tech].append(_apfd_val)
                     # set allMedToPlot[tech] to the medians of all that
-                    allMedToPlot[tech] = {i+1: np.median(v) for i, v in enumerate(meds_up)}
+                    #allMedToPlot[tech] = {i+1: np.median(v) for i, v in enumerate(meds_up)}
             medians = plot.plotBoxes(apfd_data, plot_order, apfd_FR_plot_data_img_file, plot.colors_bw, ylabel="APFD", yticks_range=range(0,101,20), fontsize=26, title=None)
             load.common_fs.dumpJSON(medians, apfd_FR_median_file)
             
