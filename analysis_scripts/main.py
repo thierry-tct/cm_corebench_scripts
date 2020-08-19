@@ -409,6 +409,7 @@ def main():
 
             sim_cache_file = os.path.join(out_folder, "sim_cache_file.{}.json".format(scenario))
             if os.path.isfile (sim_cache_file):
+                print ("Reading Simulation from cache...")
                 if proj_to_pred_mut_to_relscore is None:
                     randomAll_rMS, randomKillable_rMS, randomOnCommit_rMS, randomRelevant_rMS, randomAll_FR, randomKillable_FR, randomOnCommit_FR, randomRelevant_FR = load.common_fs.loadJSON(sim_cache_file)
                 else:
@@ -496,6 +497,7 @@ def main():
                             outTopList_rMS.append(tmp_rMS)
                             outTopList_FR.append(tmp_FR)
                             
+                print ("Writing Simulation Cache ...")
                 if proj_to_pred_mut_to_relscore is None:
                     load.common_fs.dumpJSON([randomAll_rMS, randomKillable_rMS, randomOnCommit_rMS, randomRelevant_rMS, randomAll_FR, randomKillable_FR, randomOnCommit_FR, randomRelevant_FR], sim_cache_file)
                 else:
@@ -631,7 +633,7 @@ def main():
                         _apfd_val = np.trapz(rep_dat) * 100.0 / (len(rep_dat) - 1)
                         apfd_data[tech].append(_apfd_val)
                     # set allMedToPlot[tech] to the medians of all that
-                    allMedToPlot[tech] = [np.median(v) for v in meds_up]
+                    allMedToPlot[tech] = {i+1: np.median(v) for i, v in enumrate(meds_up)}
             medians = plot.plotBoxes(apfd_data, plot_order, apfd_FR_plot_data_img_file, plot.colors_bw, ylabel="APFD", yticks_range=range(0,101,20), fontsize=26, title=None)
             load.common_fs.dumpJSON(medians, apfd_FR_median_file)
             
