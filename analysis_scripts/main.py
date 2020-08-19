@@ -616,10 +616,18 @@ def main():
                             if rep_ind not in tmp_acc:
                                 tmp_acc[rep_ind] = list(rep_data)
                             else:
-                                # TODO: pairwise sum the lists...
+                                tmp_acc[rep_ind] = list(np.array(tmp_acc[rep_ind]) + np.array(rep_data))
                         else:
                             _apfd_val = np.trapz(rep_data) * 100.0 / (len(rep_data) - 1)
                             apfd_data[tech].append(_apfd_val)
+                if IS_PERCENTAGE_FAULTS:
+                    for rep_ind, rep_dat in tmp_acc.items():
+                        for i in range(len(rep_dat)):
+                            rep_dat[i] = rep_dat[i] * 1.0 / len(t_data)
+                        _apfd_val = np.trapz(rep_dat) * 100.0 / (len(rep_dat) - 1)
+                        apfd_data[tech].append(_apfd_val)
+                    # set allMedToPlot[tech] to the medians of all that
+                    allMedToPlot[tech] = #TODO
             medians = plot.plotBoxes(apfd_data, plot_order, apfd_FR_plot_data_img_file, plot.colors_bw, ylabel="APFD", yticks_range=range(0,101,20), fontsize=26, title=None)
             load.common_fs.dumpJSON(medians, apfd_FR_median_file)
             
