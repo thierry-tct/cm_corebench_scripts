@@ -651,7 +651,7 @@ def main():
             load.common_fs.dumpJSON(medians, apfd_FR_median_file)
             
             #if not IS_PERCENTAGE_FAULTS:
-            variance_plot = {} if IS_PERCENTAGE_FAULTS else None
+            variance_plot = None #{} if IS_PERCENTAGE_FAULTS else None
             for k,v in allMedToPlot.items():
                 allMedToPlot[k], variance_res = repetavg_and_proj_proportion_aggregate (v, stopAt=minstopat, agg_median=IS_PERCENTAGE_FAULTS)
                 if variance_plot is not None:
