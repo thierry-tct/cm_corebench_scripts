@@ -78,8 +78,8 @@ def repetavg_and_proj_proportion_aggregate (proj2repetlists, stopAt=None, agg_me
             else:
                 res[key] += sum(plist) * 1.0 / len(plist)
         if agg_median:
-            res[key] = np.median(res[key])
             variance_res[key] = (min(res[key]), max(res[key]))
+            res[key] = np.median(res[key])
         else:
             res[key] = res[key] * 1.0 / len(proj2repetlists)
 
