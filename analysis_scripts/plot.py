@@ -19,7 +19,7 @@ def plotTrend(name_to_data, image_file, xlabel, ylabel, order=None, variance_dat
     
     variance_obj = None
     if  variance_data is not None:
-        variance_obj = {name: {'x':list(data.keys()), 'ymin':[y for _,y[0] in data.items()], 'ymax':[y for _,y[1] in data.items()]} for name, data in name_to_data.items()}
+        variance_obj = {name: {'x':list(data.keys()), 'ymin':[y[0] for _,y in data.items()], 'ymax':[y[1] for _,y in data.items()]} for name, data in name_to_data.items()}
 
     plt.figure(figsize=(13, 9))
     plt.gcf().subplots_adjust(bottom=0.27)
