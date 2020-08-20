@@ -656,7 +656,7 @@ def main():
                 allMedToPlot[k], variance_res = repetavg_and_proj_proportion_aggregate (v, stopAt=minstopat, agg_median=IS_PERCENTAGE_FAULTS)
                 if variance_plot is not None:
                     variance_plot[k] = variance_res
-            plot.plotTrend(allMedToPlot, img_file, x_label, 'Fault Revelation', order=plot_order, )
+            plot.plotTrend(allMedToPlot, img_file, x_label, 'Fault Revelation', order=plot_order, variance_data=variance_plot)
             for pc, pc_name in {0:'min', 0.25: '1stQuantile', 0.5: 'median', 0.75: '3rdQuantile', 1: 'max'}.items():
                 ## rMS
                 img_file = os.path.join(out_folder, 'rMS_PLOT_{}_{}'.format(scenario, pc_name))
