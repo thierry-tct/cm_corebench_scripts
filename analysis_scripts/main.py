@@ -57,6 +57,9 @@ def repetavg_and_proj_proportion_aggregate (proj2repetlists, stopAt=None, agg_me
     if stopAt is not None and size > stopAt:
         size = stopAt
     res = {}
+    variance_res = None
+    if agg_median:
+        variance_res  = {}
     for i in range(size):
         key = i+1
         if agg_median:
@@ -76,11 +79,12 @@ def repetavg_and_proj_proportion_aggregate (proj2repetlists, stopAt=None, agg_me
                 res[key] += sum(plist) * 1.0 / len(plist)
         if agg_median:
             res[key] = np.median(res[key])
+            variance_res[key] = (min(res[key]), max(res[key]))
         else:
             res[key] = res[key] * 1.0 / len(proj2repetlists)
 
-    return res
-#~ def repetavg_and_proj_sum_aggregate()
+    return res, variance_res
+#~ def repetavg_and_proj_proportion_aggregate()
 
 def allmedian_aggregate (proj2repetlists, percentile=0.5, stopAt=None):
     ''' return a key value, where keys are indexes and values the values
@@ -647,9 +651,12 @@ def main():
             load.common_fs.dumpJSON(medians, apfd_FR_median_file)
             
             #if not IS_PERCENTAGE_FAULTS:
+            variance_plot = {} if IS_PERCENTAGE_FAULTS else None
             for k,v in allMedToPlot.items():
-                allMedToPlot[k] = repetavg_and_proj_proportion_aggregate (v, stopAt=minstopat, agg_median=IS_PERCENTAGE_FAULTS)
-            plot.plotTrend(allMedToPlot, img_file, x_label, 'Fault Revelation', order=plot_order)
+                allMedToPlot[k], variance_res = repetavg_and_proj_proportion_aggregate (v, stopAt=minstopat, agg_median=IS_PERCENTAGE_FAULTS)
+                if variance_plot is not None:
+                    variance_plot[k] = variance_res
+            plot.plotTrend(allMedToPlot, img_file, x_label, 'Fault Revelation', order=plot_order, )
             for pc, pc_name in {0:'min', 0.25: '1stQuantile', 0.5: 'median', 0.75: '3rdQuantile', 1: 'max'}.items():
                 ## rMS
                 img_file = os.path.join(out_folder, 'rMS_PLOT_{}_{}'.format(scenario, pc_name))
