@@ -568,6 +568,8 @@ def main():
                     avg_num = sum(avg_num) * 1.0 / len(avg_num)
                     print ("\n# KILLABLE MUTANTS > AVG plot Proportion: {} AVG plot Number {}".format(avg_proportion, avg_num))
 
+            PREDICTION = "CoReM" #'Prediction'
+            
             # XXX: Change this if normalize_data_x changes ()
             if not NO_RELEVANT_IN_PLOT:
                 stat_dat = stat_test (randomRelevant_FR, randomRelevant_rMS, 'Relevant', randomAll_FR, randomAll_rMS, 'Random')
@@ -586,11 +588,11 @@ def main():
 
             if proj_to_pred_mut_to_relscore is not None:
                 if not NO_RELEVANT_IN_PLOT:
-                    stat_dat = stat_test (randomRelevant_FR, randomRelevant_rMS, 'Relevant', predictedRelevant_FR, predictedRelevant_rMS, 'Prediction')
+                    stat_dat = stat_test (randomRelevant_FR, randomRelevant_rMS, 'Relevant', predictedRelevant_FR, predictedRelevant_rMS, PREDICTION)
                     stat_file = os.path.join(out_folder, "RelevantVSPrediction-stat_test.csv")
                     load.common_fs.dumpCSV(pd.DataFrame(stat_dat), stat_file, separator=',')
 
-                stat_dat = stat_test (predictedRelevant_FR, predictedRelevant_rMS, 'Prediction', randomAll_FR, randomAll_rMS, 'Random')
+                stat_dat = stat_test (predictedRelevant_FR, predictedRelevant_rMS, PREDICTION, randomAll_FR, randomAll_rMS, 'Random')
                 stat_file = os.path.join(out_folder, "PredictionVSRandom-stat_test.csv")
                 load.common_fs.dumpCSV(pd.DataFrame(stat_dat), stat_file, separator=',')
 
@@ -599,7 +601,7 @@ def main():
             if not NO_RELEVANT_IN_PLOT:
                 plot_order.append('Relevant')
             if proj_to_pred_mut_to_relscore is not None:
-                plot_order.append("Prediction")
+                plot_order.append(PREDICTION)
             plot_order.append('Random')
             if proj2mutoncommit is not None:
                 plot_order.append("Modification")
@@ -612,7 +614,7 @@ def main():
             if proj2mutoncommit is not None:
                 allMedToPlot['Modification'] = randomOnCommit_FR
             if proj_to_pred_mut_to_relscore is not None:
-                allMedToPlot['Prediction'] = predictedRelevant_FR
+                allMedToPlot[PREDICTION] = predictedRelevant_FR
                 
             # Save raw data and plot boxes
             raw_FR_plot_data_json_file = os.path.join(out_folder, "raw_FR_plot_data_{}.json".format(scenario))
@@ -666,7 +668,7 @@ def main():
                 if proj2mutoncommit is not None:
                     allMedToPlot['Modification'] = randomOnCommit_rMS
                 if proj_to_pred_mut_to_relscore is not None:
-                    allMedToPlot['Prediction'] = predictedRelevant_rMS
+                    allMedToPlot[PREDICTION] = predictedRelevant_rMS
                 for k,v in allMedToPlot.items():
                     allMedToPlot[k] = allmedian_aggregate (v, percentile=pc, stopAt=minstopat)
                 plot.plotTrend(allMedToPlot, img_file, x_label, 'Relevant Mutation Score', order=plot_order)
