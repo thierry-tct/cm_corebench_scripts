@@ -645,11 +645,11 @@ def main():
                         for i in range(len(rep_dat)):
                             rep_dat[i] = rep_dat[i] * 1.0 / len(t_data)
                             meds_up[i].append(rep_dat[i])
-                        _apfd_val = np.trapz(rep_dat) * 100.0 / (len(rep_dat) - 1)
+                        _apfd_val = np.trapz(rep_dat) * 1.0 / (len(rep_dat) - 1)
                         apfd_data[tech].append(_apfd_val)
                     # set allMedToPlot[tech] to the medians of all that
                     #allMedToPlot[tech] = {i+1: np.median(v) for i, v in enumerate(meds_up)}
-            medians = plot.plotBoxes(apfd_data, plot_order, apfd_FR_plot_data_img_file, plot.colors_bw, ylabel="APFD", yticks_range=range(0,101,20), fontsize=26, title=None)
+            medians = plot.plotBoxes(apfd_data, plot_order, apfd_FR_plot_data_img_file, plot.colors_bw, ylabel="APFD", yticks_range=np.arange(0,1.01,0.20), fontsize=26, title=None)
             load.common_fs.dumpJSON(medians, apfd_FR_median_file)
             
             #if not IS_PERCENTAGE_FAULTS:
