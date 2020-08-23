@@ -568,7 +568,7 @@ def main():
                     avg_num = sum(avg_num) * 1.0 / len(avg_num)
                     print ("\n# KILLABLE MUTANTS > AVG plot Proportion: {} AVG plot Number {}".format(avg_proportion, avg_num))
 
-            PREDICTION = "CoReM" #'Prediction'
+            PREDICTION = "MuDelta" #'Prediction'
             
             # XXX: Change this if normalize_data_x changes ()
             if not NO_RELEVANT_IN_PLOT:
