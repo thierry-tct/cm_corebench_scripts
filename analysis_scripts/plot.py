@@ -8,7 +8,8 @@ import seaborn as sns
 colors_bw = ['white', 'whitesmoke', 'lightgray', 'silver', 'darkgrey', 'gray', 'dimgrey', "black"]
 colors = ["green", 'blue', 'red', "black", "maroon", "magenta", "cyan"]
 linestyles = ['solid', 'dashdot', 'dashed', 'dashed', 'dashdot', 'dotted', 'solid']
-linewidths = [1.75, 1.75, 2.5, 2.5, 3.25, 3.75, 2]
+#linewidths = [1.75, 1.75, 2.5, 2.5, 3.25, 3.75, 2]
+linewidths = [2.75, 2.75, 3.5, 3.5, 4.25, 4.75, 3]
 
 def plotTrend(name_to_data, image_file, xlabel, ylabel, order=None, variance_data=None):
     if order is None:
@@ -32,7 +33,7 @@ def plotTrend(name_to_data, image_file, xlabel, ylabel, order=None, variance_dat
     fontsize = 26
     maxx = max([max(plotobj[t]['x']) for t in order])
     for ti,tech in enumerate(order):
-        plt.plot(plotobj[tech]['x'], plotobj[tech]['y'], color=colors[ti], linestyle=linestyles[ti], linewidth=linewidths[ti], label=tech, alpha=0.8)
+        plt.plot(plotobj[tech]['x'], plotobj[tech]['y'], color=colors[ti], linestyle=linestyles[ti], linewidth=linewidths[ti], label=tech, alpha=0.7) #0.8
         if variance_obj is not None:
             plt.fill_between(variance_obj[tech]['x'], variance_obj[tech]['ymin'], variance_obj[tech]['ymax'], color=colors[ti], alpha=0.5)
     plt.ylabel(ylabel, fontsize=fontsize)
