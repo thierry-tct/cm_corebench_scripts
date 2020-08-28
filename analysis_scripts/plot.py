@@ -33,14 +33,14 @@ def plotTrend(name_to_data, image_file, xlabel, ylabel, order=None, variance_dat
     fontsize = 26
     maxx = max([max(plotobj[t]['x']) for t in order])
     for ti,tech in enumerate(order):
-        plt.plot(plotobj[tech]['x'], plotobj[tech]['y'], color=colors[ti], linestyle=linestyles[ti], linewidth=linewidths[ti], label=tech, alpha=0.7) #0.8
+        plt.plot(plotobj[tech]['x'], plotobj[tech]['y'], color=colors[ti], linestyle=linestyles[ti], linewidth=linewidths[ti], label=tech, alpha=0.6) #0.8
         if variance_obj is not None:
             plt.fill_between(variance_obj[tech]['x'], variance_obj[tech]['ymin'], variance_obj[tech]['ymax'], color=colors[ti], alpha=0.5)
     plt.ylabel(ylabel, fontsize=fontsize)
     plt.xlabel(xlabel, fontsize=fontsize)
     step = int(min(maxx, 10))
-    plt.xticks(list(range(1, maxx+1, int(maxx/step))) + [maxx] if (maxx % step == 0 or type(maxx) == int) else np.arange(1,maxx+1, maxx/float(step)), fontsize=fontsize-5)
-    plt.yticks(np.arange(0,1.01,0.2), fontsize=fontsize-5)
+    plt.xticks(list(range(1, maxx+1, int(maxx/step))) + [maxx] if (maxx % step == 0 or type(maxx) == int) else np.arange(1,maxx+1, maxx/float(step)), fontsize=fontsize-3)#5)
+    plt.yticks(np.arange(0,1.01,0.2), fontsize=fontsize-3)#5)
     legendMode=1 if len(order) <= 3 else 2
     if legendMode==1:
         lgd = plt.legend(bbox_to_anchor=(0., 0.98, 1., .102), loc=2, ncol=3, mode="expand", fontsize=fontsize, borderaxespad=0.)
