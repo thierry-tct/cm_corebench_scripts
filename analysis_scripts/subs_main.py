@@ -195,16 +195,67 @@ def main():
     # load data
     print("# LOADING DATA ...")
     cache_file = os.path.join(out_folder, "cache_file.json")
-    all_tests, mutants_to_killingtests, tests_to_killed_mutants, tests_to_subs_cluster, mutant_to_subs_cluster, subs_cluster_to_mutant = \
+    all_tests, all_mutants, pred_mutants, mutants_to_killingtests, tests_to_killed_mutants, tests_to_killed_subs_cluster, mutant_to_subs_cluster, subs_cluster_to_mutant = \
 								              load_data(in_top_dir, tmpdir, cache_file)
 
-    #~~~~~~~~~~~ Make simulation
     random_rep = 100
     test_rep = 100
+    
+    # Simulation
+
+    sim_res = {}
+    for proj in all_tests:
+        sim_res[proj] = {'RANDOM': None, "PREDICTED": None}
+        sim_res[proj]["RANDOM"], sim_res[proj]["PREDICTED"] = simulation(all_tests[proj], \
+                                                                         all_mutants[proj], \
+                                                                         pred_mutants[proj], \
+                                                                         tests_to_killed_mutants[proj], \
+                                                                         tests_to_killed_subs_cluster[proj])
+
+        # Plot box plot
+        imagefile = os.path.join(out_folder, "boxplot-"+proj)
+
 
     print("@DONE!")
 #~ def main()
 
+def simulation(test_list, mutant_list, pred_mutant_list,
+                  tests_to_killed_mutants, tests_to_killed_subs_cluster):
+    selection_size = len(pred_mutant_list)
+    random_test_suites = []
+    pred_test_suites = []
+    for repet_id in range(num_repet):
+        # randomly sample
+        random_M = set(random.sample(mutant_list, selection_size))
+        pred_M = set(pred_mutant_list)
+
+        test_order = list(test_list)
+        random.shuffle(test_order)
+
+        random_test_suites.append([])
+        pred_test_suites.append([])
+        for t in test_order:
+            # get killed mutants
+            rand_kill_mut = set(tests_to_killed_mutants[t]) & random_M
+            pred_kill_mut = set(tests_to_killed_mutants[t]) & pred_M
+            if len(rand_kill_mut) > 0:
+                random_test_suites[-1].append(t)
+                random_M -= rand_kill_mut
+            if len(pred_kill_mut) > 0:
+                pred_test_suites[-1].append(t)
+                pred_M -= pred_kill_mut
+
+    # Computer sMS
+    rand_sMS = []
+    pred_sMS = []
+    for ts in random_test_suites:
+        rand_sMS.append(get_subs_ms(ts, tests_to_killed_subs_cluster))
+    for ts in pred_test_suites:
+        pred_sMS.append(get_subs_ms(ts, tests_to_killed_subs_cluster))
+
+    return rand_sMS, pred_sMS
+#~ def simulation()
+    
 def stat_test (left_FR, left_rMS, left_name, right_FR, right_rMS, right_name):
     res = {}
     left_fr_list = {} #i: [] for i in range(1, 101)} 
