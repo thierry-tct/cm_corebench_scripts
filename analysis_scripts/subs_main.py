@@ -164,7 +164,7 @@ def load_data(in_top_dir, tmpdir, cache_file):
     if update_cache:
         load.common_fs.dumpJSON([all_tests, fault_tests, relevant_mutants_to_relevant_tests, mutants_to_killingtests, tests_to_killed_mutants], cache_file)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    return all_tests, mutants_to_killingtests, tests_to_killed_mutants, tests_to_subs_cluster, mutant_to_subs_cluster, subs_cluster_to_mutant
+    return all_tests, all_mutants, pred_mutants, mutants_to_killingtests, tests_to_killed_mutants, tests_to_killed_subs_cluster, mutant_to_subs_cluster, subs_cluster_to_mutant
 #~ def load_data()
 
 def main():
@@ -198,15 +198,14 @@ def main():
     all_tests, all_mutants, pred_mutants, mutants_to_killingtests, tests_to_killed_mutants, tests_to_killed_subs_cluster, mutant_to_subs_cluster, subs_cluster_to_mutant = \
 								              load_data(in_top_dir, tmpdir, cache_file)
 
-    random_rep = 100
-    test_rep = 100
+    num_repet = 1000
     
     # Simulation
 
     sim_res = {}
     for proj in all_tests:
         sim_res[proj] = {'RANDOM': None, "PREDICTED": None}
-        sim_res[proj]["RANDOM"], sim_res[proj]["PREDICTED"] = simulation(all_tests[proj], \
+        sim_res[proj]["RANDOM"], sim_res[proj]["PREDICTED"] = simulation(num_repet, all_tests[proj], \
                                                                          all_mutants[proj], \
                                                                          pred_mutants[proj], \
                                                                          tests_to_killed_mutants[proj], \
@@ -219,7 +218,7 @@ def main():
     print("@DONE!")
 #~ def main()
 
-def simulation(test_list, mutant_list, pred_mutant_list,
+def simulation(num_repet, test_list, mutant_list, pred_mutant_list,
                   tests_to_killed_mutants, tests_to_killed_subs_cluster):
     selection_size = len(pred_mutant_list)
     random_test_suites = []
