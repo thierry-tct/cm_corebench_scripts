@@ -14,6 +14,8 @@ import scipy.stats.stats as ss
 import numpy as np
 import pandas as pd
 
+import seaborn as sns
+
 import load
 import plot
  
@@ -115,7 +117,7 @@ def get_subs_ms(test_suite, tests_to_killed_clusters):
     return subs_ms
 #~ def get_ms()
 
-def load_data(in_top_dir, tmpdir, cache_file):
+def load_data(in_top_dir, cache_file):
     # Get the project list
     if os.path.isfile(cache_file):
         all_tests, mutants_to_killingtests, tests_to_killed_mutants = load.common_fs.loadJSON(cache_file)
@@ -187,16 +189,11 @@ def main():
     if not os.path.isdir(out_folder):
         os.mkdir(out_folder)
 
-    # CHANGABLE Hardcodec parameters
-    test_sizes_percents = list(range(5,91,5))
-    sample_count = 10000
-    parallel_count = 50
-
     # load data
     print("# LOADING DATA ...")
     cache_file = os.path.join(out_folder, "cache_file.json")
     all_tests, all_mutants, pred_mutants, mutants_to_killingtests, tests_to_killed_mutants, tests_to_killed_subs_cluster, mutant_to_subs_cluster, subs_cluster_to_mutant = \
-								              load_data(in_top_dir, tmpdir, cache_file)
+								              load_data(in_top_dir, cache_file)
 
     num_repet = 1000
     
@@ -211,10 +208,18 @@ def main():
                                                                          tests_to_killed_mutants[proj], \
                                                                          tests_to_killed_subs_cluster[proj])
 
-        # Plot box plot
-        imagefile = os.path.join(out_folder, "boxplot-"+proj)
-
-
+    # Plot box plot
+    image_file = os.path.join(out_folder, "boxplot-all")
+    data_df = []
+    for proj, p_dat in sim_res.items():
+        for tech, t_dat in p_dat.items():
+            for sMS in t_dat:
+                data_df.append({'Program': proj[:6], 'Subsuming MS': sMS, 'Tech': tech})
+    data_df = pd.DataFrame(data_df)
+    ax = sns.sns.boxplot(x="Program", y="Subsuming MS", hue="Tech", data=data_df, linewidth=2.5)
+    plt.savefig(image_file+".pdf", format='pdf') #, bbox_extra_artists=(lgd,), bbox_inches='tight')
+    plt.close('all')
+    
     print("@DONE!")
 #~ def main()
 
