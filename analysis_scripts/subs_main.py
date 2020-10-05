@@ -126,47 +126,60 @@ def load_data(in_top_dir, cache_file):
     else:
         not_cached = projs
         all_tests = {}
+        all_mutants = {}
+        pred_mutants = {}
         mutants_to_killingtests = {}
         tests_to_killed_mutants = {}
+        tests_to_killed_subs_cluster = {}
+        mutant_to_subs_cluster = {}
+        subs_cluster_to_mutants = {}
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    update_cache = (len(not_cached) > 0)
+    pred_muts_json = os.path.join(in_top_dir, "predicted_mutants.json")
+    all_muts_json = os.path.join(in_top_dir, "all_mutants.json")
+    label_data_folder = os.path.join(in_top_dir, "label_data")
+    matrices_folder = os.path.join(in_top_dir, "matrices")
+
+    #update_cache = (len(not_cached) > 0)
+    
+    pred_muts_obj = load.common_fs.loadJSON(pred_muts_json)
+    all_muts_obj = load.common_fs.loadJSON(all_muts_json)
     
     # Load projects data
-    tq_data = tqdm.tqdm(tars)
-    for proj_tar in tq_data:
-        tq_data.set_description("Loading tar: {}".format(proj_tar))
-        pname = get_pname(proj_tar)
-        if pname not in not_cached:
-            continue
-        if os.system('cd {} && tar -xzf {} --exclude {} --exclude {} && test -d res'.format(\
-                                                        tmpdir, proj_tar, \
-                                                        'post/RESULTS_DATA/other_copied_results/Flakiness', \
-                                                        'pre/RESULTS_DATA/other_copied_results/Flakiness')) != 0:
-            error_exit("untar failed for {}".format(proj_tar))
-        res_folder = os.path.join(tmpdir, 'res')
+    tq_data = tqdm.tqdm(list(pred_muts_obj))
+    for pname in tq_data:
+        tq_data.set_description("Loading {} ...".format(pname))
+        prog, commit = pname.split('_')
+        #if pname not in not_cached:
+            #continue
+        
+        # get clusters
+        label_data_file = os.path.join(label_data_folder, prog, commit, label.json)
+        raw_subs_clust = load.common_fs.loadJSON(label_data_file)['subsume'][1]
+        mutant_to_subs_cluster[pname] = {}
+        subs_cluster_to_mutants[pname] = {}
+        for c_id, c in enumerate(raw_subs_clust):
+            subs_cluster_to_mutants[pname][c_id] = list(c)
+            for m_id in c:
+                assert m_id not in mutant_to_subs_cluster[pname]
+                mutant_to_subs_cluster[pname][m_id] = c_id
+        
+        sm_mat_file = os.path.join(matrices_folder, prog, commit, "STRONG_MUTATION.csv") # TODO, check
+        all_tests[pname], mutants_to_killingtests[pname], tests_to_killed_mutants[pname] = load.load(sm_mat_file)
 
-        # XXX fix matrices
-        #if True:
-        #    fix_matrices(os.path.join(res_folder, 'pre', 'RESULTS_DATA'))
-        #    fix_matrices(os.path.join(res_folder, 'post', 'RESULTS_DATA'))
-        #    if os.system('tar -czf {} {}'.format(proj_tar, res_folder)) != 0:
-        #        error_exit ("failed to update tar by fixing matrices")
-        #~~~~~~~~~~~~
+        all_mutants[pname] = all_muts_obj[pname]
+        pred_mutants[pname] = pred_muts_obj[pname]
+        
+        tests_to_killed_subs_cluster[pname] = {}
+        for t, kmuts in tests_to_killed_mutants.items():
+            tests_to_killed_subs_cluster[pname][t] = set()
+            for km in kmuts:
+                if km in mutant_to_subs_cluster[pname]:
+                    tests_to_killed_subs_cluster[pname][t].add(mutant_to_subs_cluster[pname][km])
 
-        ldata = load.load(res_folder, fault_revealing=True)
-        shutil.rmtree(res_folder)
-
-        all_tests[pname] = ldata[0]
-        fault_tests[pname] = ldata[1]
-        relevant_mutants_to_relevant_tests[pname] = ldata[2]
-        mutants_to_killingtests[pname] = ldata[3]
-        tests_to_killed_mutants[pname] = ldata[4]
-
-    if update_cache:
-        load.common_fs.dumpJSON([all_tests, fault_tests, relevant_mutants_to_relevant_tests, mutants_to_killingtests, tests_to_killed_mutants], cache_file)
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    return all_tests, all_mutants, pred_mutants, mutants_to_killingtests, tests_to_killed_mutants, tests_to_killed_subs_cluster, mutant_to_subs_cluster, subs_cluster_to_mutant
+    #if update_cache:
+        #load.common_fs.dumpJSON([all_tests, fault_tests, relevant_mutants_to_relevant_tests, mutants_to_killingtests, tests_to_killed_mutants], cache_file)
+        
+    return all_tests, all_mutants, pred_mutants, mutants_to_killingtests, tests_to_killed_mutants, tests_to_killed_subs_cluster, mutant_to_subs_cluster, subs_cluster_to_mutants
 #~ def load_data()
 
 def main():
@@ -198,7 +211,6 @@ def main():
     num_repet = 1000
     
     # Simulation
-
     sim_res = {}
     for proj in all_tests:
         sim_res[proj] = {'RANDOM': None, "PREDICTED": None}
