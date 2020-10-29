@@ -152,6 +152,11 @@ def load_data(in_top_dir, cache_file):
     
     pred_muts_obj = subs_load.common_fs.loadJSON(pred_muts_json)
     all_muts_obj = subs_load.common_fs.loadJSON(all_muts_json)
+    for obj in (pred_muts_obj, all_muts_obj):
+        for pname, pobj in obj.items():
+            for i in range(len(pobj)):
+                if 'mart_0:' not in pobj[i]:
+                    pobj[i] = 'mart_0:' + pobj[i]
     
     # Load projects data
     tq_data = tqdm.tqdm(list(pred_muts_obj))
