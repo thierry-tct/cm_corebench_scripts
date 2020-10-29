@@ -186,7 +186,7 @@ def load_data(in_top_dir, model_in_dir, cache_file):
         all_tests[pname], mutants_to_killingtests[pname], tests_to_killed_mutants[pname] = subs_load.load(sm_mat_file)
         
         # Add mutants not in matrix but in mutinfo
-        mif = subs_load.common_fs.loadJSON(mut_info_file)
+        minf = subs_load.common_fs.loadJSON(mut_info_file)
         for mut in minf:
             mut = "mart_0:"+mut
             if mut not in mutants_to_killingtests[pname]:
