@@ -226,7 +226,7 @@ def main():
     print("# LOADING DATA ...")
     cache_file = os.path.join(out_folder, "cache_file.json")
     all_tests, all_mutants, pred_mutants, mutants_to_killingtests, tests_to_killed_mutants, tests_to_killed_subs_cluster, mutant_to_subs_cluster, subs_cluster_to_mutant = \
-								              load_data(in_top_dir, cache_file)
+								              load_data(in_top_dir, model_in_dir, cache_file)
 
     # Save some data about prediction cluster coverage
     pred_clust_cov = {}
