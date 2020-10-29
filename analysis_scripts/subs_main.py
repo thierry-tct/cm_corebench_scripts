@@ -231,8 +231,12 @@ def main():
     num_repet = 1000
     
     # Simulation
+    print ("# Running Simulations ...")
     sim_res = {}
-    for proj in all_tests:
+    tq_data = tqdm.tqdm(list(all_tests))
+    for proj in tq_data:
+        tq_data.set_description("Loading {} ...".format(proj))
+    
         sim_res[proj] = {'RANDOM': None, "PREDICTED": None}
         sim_res[proj]["RANDOM"], sim_res[proj]["PREDICTED"] = simulation(num_repet, all_tests[proj], \
                                                                          all_mutants[proj], \
@@ -240,6 +244,7 @@ def main():
                                                                          tests_to_killed_mutants[proj], \
                                                                          tests_to_killed_subs_cluster[proj])
 
+    print("# Plotting ...")
     # Plot box plot
     image_file = os.path.join(out_folder, "boxplot-all")
     data_df = []
