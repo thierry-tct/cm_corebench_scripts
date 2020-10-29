@@ -127,7 +127,7 @@ def getProjMatricesLabelFiles(in_top_dir, proj, commit=None):
     else:
         mat_file = os.path.join(in_top_dir, 'SEMu-Experiement-data', 'semu_cleaned_data', proj, 'STRONG_MUTATION.csv')
         label_file = os.path.join(in_top_dir, 'SEMu-Experiement-data', 'semu_cleaned_data', proj, 'subsuming-clusters.json')
-        mut_info_file = os.path.join(matrices_folder, prog, commit, "mutantsInfos.json")
+        mut_info_file = os.path.join(in_top_dir, 'SEMu-Experiement-data', 'semu_cleaned_data', proj, "mutantsInfos.json")
     return mat_file, label_file, mut_info_file
 #~ def getProjMatricesLabelFiles()
 
