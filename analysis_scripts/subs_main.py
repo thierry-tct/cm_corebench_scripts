@@ -136,7 +136,7 @@ def load_data(in_top_dir, cache_file):
         cache_projs = set(all_tests)
         not_cached = projs - cache_projs
     else:
-        not_cached = projs
+        #not_cached = projs
         all_tests = {}
         all_mutants = {}
         pred_mutants = {}
