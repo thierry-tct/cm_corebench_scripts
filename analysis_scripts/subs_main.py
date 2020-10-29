@@ -245,6 +245,11 @@ def main():
                 fixed_size = "pred_size"
             else:
                 used_fixed_size = fixed_size
+                
+            if used_fixed_size > len(pred_mutants[proj]):
+                # not enough data to check
+                continue
+                
             sim_res[proj] = {'RANDOM': None, "PREDICTED": None}
             sim_res[proj]["RANDOM"], sim_res[proj]["PREDICTED"] = simulation(num_repet, all_tests[proj], \
                                                                              all_mutants[proj], \
@@ -261,10 +266,11 @@ def main():
             for tech, t_dat in p_dat.items():
                 for sMS in t_dat:
                     data_df.append({'Program': proj[:6], 'Subsuming MS': sMS, 'Tech': tech})
-        data_df = pd.DataFrame(data_df)
-        ax = sns.boxplot(x="Program", y="Subsuming MS", hue="Tech", data=data_df, linewidth=2.5)
-        plot.plt.savefig(image_file+".pdf", format='pdf') #, bbox_extra_artists=(lgd,), bbox_inches='tight')
-        plot.plt.close('all')
+        if len(data_df) > 0:
+            data_df = pd.DataFrame(data_df)
+            ax = sns.boxplot(x="Program", y="Subsuming MS", hue="Tech", data=data_df, linewidth=2.5)
+            plot.plt.savefig(image_file+".pdf", format='pdf') #, bbox_extra_artists=(lgd,), bbox_inches='tight')
+            plot.plt.close('all')
     
     print("@DONE!")
 #~ def main()
