@@ -242,8 +242,8 @@ def main():
                 used_fixed_size = len(subs_cluster_to_mutant[proj])
             elif fixed_size is None:
                 used_fixed_size = len(pred_mutants[proj])
-                fixed_size = "pred_size"
             else:
+                assert type(fixed_size) == int
                 used_fixed_size = fixed_size
                 
             if used_fixed_size > len(pred_mutants[proj]):
@@ -260,7 +260,7 @@ def main():
 
         print("# Plotting ...")
         # Plot box plot
-        image_file = os.path.join(out_folder, "boxplot_all-{}-{}".format(used_fixed_size, fixed_size))
+        image_file = os.path.join(out_folder, "boxplot_all-{}-{}".format(used_fixed_size, ("pred_size" if fixed_size is None else fixed_size)))
         data_df = []
         for proj, p_dat in sim_res.items():
             for tech, t_dat in p_dat.items():
