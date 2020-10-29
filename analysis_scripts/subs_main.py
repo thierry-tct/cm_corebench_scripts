@@ -232,37 +232,49 @@ def main():
     
     # Simulation
     print ("# Running Simulations ...")
-    sim_res = {}
-    tq_data = tqdm.tqdm(list(all_tests))
-    for proj in tq_data:
-        tq_data.set_description("Loading {} ...".format(proj))
-    
-        sim_res[proj] = {'RANDOM': None, "PREDICTED": None}
-        sim_res[proj]["RANDOM"], sim_res[proj]["PREDICTED"] = simulation(num_repet, all_tests[proj], \
-                                                                         all_mutants[proj], \
-                                                                         pred_mutants[proj], \
-                                                                         tests_to_killed_mutants[proj], \
-                                                                         tests_to_killed_subs_cluster[proj])
+    for fixed_size in (None, 10, 20, 30, "subs_cluster_size"):
+        sim_res = {}
+        tq_data = tqdm.tqdm(list(all_tests))
+        for proj in tq_data:
+            tq_data.set_description("Loading {} ...".format(proj))
 
-    print("# Plotting ...")
-    # Plot box plot
-    image_file = os.path.join(out_folder, "boxplot-all")
-    data_df = []
-    for proj, p_dat in sim_res.items():
-        for tech, t_dat in p_dat.items():
-            for sMS in t_dat:
-                data_df.append({'Program': proj[:6], 'Subsuming MS': sMS, 'Tech': tech})
-    data_df = pd.DataFrame(data_df)
-    ax = sns.boxplot(x="Program", y="Subsuming MS", hue="Tech", data=data_df, linewidth=2.5)
-    plot.plt.savefig(image_file+".pdf", format='pdf') #, bbox_extra_artists=(lgd,), bbox_inches='tight')
-    plot.plt.close('all')
+            if fixed_size == "subs_cluster_size":
+                used_fixed_size = len(subs_cluster_to_mutant[proj])
+            elif fixed_size is None:
+                used_fixed_size = len(pred_mutants[proj])
+                fixed_size = "pred_size"
+            else:
+                used_fixed_size = fixed_size
+            sim_res[proj] = {'RANDOM': None, "PREDICTED": None}
+            sim_res[proj]["RANDOM"], sim_res[proj]["PREDICTED"] = simulation(num_repet, all_tests[proj], \
+                                                                             all_mutants[proj], \
+                                                                             pred_mutants[proj], \
+                                                                             tests_to_killed_mutants[proj], \
+                                                                             tests_to_killed_subs_cluster[proj], \
+                                                                             fixed_size=used_fixed_size)
+
+        print("# Plotting ...")
+        # Plot box plot
+        image_file = os.path.join(out_folder, "boxplot_all-{}-{}".format(used_fixed_size, fixed_size))
+        data_df = []
+        for proj, p_dat in sim_res.items():
+            for tech, t_dat in p_dat.items():
+                for sMS in t_dat:
+                    data_df.append({'Program': proj[:6], 'Subsuming MS': sMS, 'Tech': tech})
+        data_df = pd.DataFrame(data_df)
+        ax = sns.boxplot(x="Program", y="Subsuming MS", hue="Tech", data=data_df, linewidth=2.5)
+        plot.plt.savefig(image_file+".pdf", format='pdf') #, bbox_extra_artists=(lgd,), bbox_inches='tight')
+        plot.plt.close('all')
     
     print("@DONE!")
 #~ def main()
 
 def simulation(num_repet, test_list, mutant_list, pred_mutant_list,
-                  tests_to_killed_mutants, tests_to_killed_subs_cluster):
-    selection_size = len(pred_mutant_list)
+                  tests_to_killed_mutants, tests_to_killed_subs_cluster, fixed_size=None):
+    if fixed_size is None:
+        selection_size = len(pred_mutant_list)
+    else:
+        selection_size = fixed_size
     random_test_suites = []
     pred_test_suites = []
     for repet_id in range(num_repet):
