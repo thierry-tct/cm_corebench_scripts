@@ -129,7 +129,7 @@ def getProjMatricesLabelFiles(in_top_dir, proj, commit=None):
     return mat_file, label_file
 #~ def getProjMatricesLabelFiles()
 
-def load_data(in_top_dir, cache_file):
+def load_data(in_top_dir, model_in_dir, cache_file):
     # Get the project list
     if os.path.isfile(cache_file):
         all_tests, mutants_to_killingtests, tests_to_killed_mutants = subs_load.common_fs.loadJSON(cache_file)
@@ -145,8 +145,8 @@ def load_data(in_top_dir, cache_file):
         mutant_to_subs_cluster = {}
         subs_cluster_to_mutants = {}
 
-    pred_muts_json = os.path.join(in_top_dir, "predicted_mutants.json")
-    all_muts_json = os.path.join(in_top_dir, "all_mutants.json")
+    pred_muts_json = os.path.join(model_in_dir, "predicted_mutants.json")
+    all_muts_json = os.path.join(model_in_dir, "all_mutants.json")
 
     #update_cache = (len(not_cached) > 0)
     
@@ -201,7 +201,7 @@ def load_data(in_top_dir, cache_file):
 
 def main():
     relmut_pred_file = None
-    if len(sys.argv) != 3 and len(sys.argv) != 2:
+    if len(sys.argv) != 3:
         if len(sys.argv) == 4:
             relmut_pred_file = os.path.abspath(sys.argv[3])
             if not os.path.isfile(relmut_pred_file):
@@ -209,14 +209,14 @@ def main():
         else:
             error_exit("expected 3 or 2 args. got {}". format(len(sys.argv)))
     in_top_dir = os.path.abspath(sys.argv[1])
-    if len(sys.argv) == 3:
-        out_top_dir = os.path.abspath(sys.argv[2])
-    else:
-        out_top_dir = in_top_dir
+    out_top_dir = in_top_dir
+    model_in_dir = os.path.abspath(sys.argv[2])
     if not os.path.isdir(in_top_dir):
         error_exit("in top dir missing ({})".format(in_top_dir))
     if not os.path.isdir(out_top_dir):
         error_exit("out top dir missing ({})".format(out_top_dir))
+    if not os.path.isdir(model_in_dir):
+        error_exit("model in dir missing ({})".format(model_in_dir))
 
     out_folder = os.path.join(out_top_dir, "ANALYSIS_OUTPUT")
     if not os.path.isdir(out_folder):
@@ -228,11 +228,21 @@ def main():
     all_tests, all_mutants, pred_mutants, mutants_to_killingtests, tests_to_killed_mutants, tests_to_killed_subs_cluster, mutant_to_subs_cluster, subs_cluster_to_mutant = \
 								              load_data(in_top_dir, cache_file)
 
+    # Save some data about prediction cluster coverage
+    pred_clust_cov = {}
+    for proj, mut_list in pred_mutants.items():
+        cc_prop = {}
+        for c, m_set in subs_cluster_to_mutant[proj].items():
+            cc_prop[c] = len(set(mut_list) & set(m_set)) * 100.0 / len(m_set)
+        pred_clust_cov[proj] = cc_prop
+    pred_clust_cov_file = os.path.join(out_folder, "Prediction_subs_cluster_coverage.json")
+    subs_load.common_fs.dumpJSON(pred_clust_cov, pred_clust_cov_file, pretty=True)
+    
     num_repet = 1000
     
     # Simulation
     print ("# Running Simulations ...")
-    for fixed_size in (None, 10, 20, 30, "subs_cluster_size"):
+    for fixed_size in (None, 5, 10, 20, 30, "subs_cluster_size"):
         sim_res = {}
         tq_data = tqdm.tqdm(list(all_tests))
         for proj in tq_data:
@@ -256,6 +266,7 @@ def main():
                                                                              pred_mutants[proj], \
                                                                              tests_to_killed_mutants[proj], \
                                                                              tests_to_killed_subs_cluster[proj], \
+                                                                             mutants_to_killingtests[proj], \
                                                                              fixed_size=used_fixed_size)
 
         print("# Plotting ...")
@@ -277,7 +288,10 @@ def main():
 #~ def main()
 
 def simulation(num_repet, test_list, mutant_list, pred_mutant_list,
-                  tests_to_killed_mutants, tests_to_killed_subs_cluster, fixed_size=None):
+                  tests_to_killed_mutants, tests_to_killed_subs_cluster, 
+                  mutants_to_killingtests, fixed_size=None):
+    ordered_tests_mode = False
+    
     if fixed_size is None:
         selection_size = len(pred_mutant_list)
     else:
@@ -287,23 +301,38 @@ def simulation(num_repet, test_list, mutant_list, pred_mutant_list,
     for repet_id in range(num_repet):
         # randomly sample
         random_M = set(random.sample(mutant_list, selection_size))
-        pred_M = set(pred_mutant_list)
-
-        test_order = list(test_list)
-        random.shuffle(test_order)
+        pred_M = set(random.sample(pred_mutant_list, selection_size))
 
         random_test_suites.append([])
         pred_test_suites.append([])
-        for t in test_order:
-            # get killed mutants
-            rand_kill_mut = set(tests_to_killed_mutants[t]) & random_M
-            pred_kill_mut = set(tests_to_killed_mutants[t]) & pred_M
-            if len(rand_kill_mut) > 0:
-                random_test_suites[-1].append(t)
-                random_M -= rand_kill_mut
-            if len(pred_kill_mut) > 0:
-                pred_test_suites[-1].append(t)
-                pred_M -= pred_kill_mut
+        
+        if ordered_tests_mode:
+            test_order = list(test_list)
+            random.shuffle(test_order)
+            for t in test_order:
+                # get killed mutants
+                rand_kill_mut = set(tests_to_killed_mutants[t]) & random_M
+                pred_kill_mut = set(tests_to_killed_mutants[t]) & pred_M
+                if len(rand_kill_mut) > 0:
+                    random_test_suites[-1].append(t)
+                    random_M -= rand_kill_mut
+                if len(pred_kill_mut) > 0:
+                    pred_test_suites[-1].append(t)
+                    pred_M -= pred_kill_mut
+        else:
+            for rem_set, TS_list in [(random_M, random_test_suites), (pred_M, pred_test_suites)]:
+                while len(rem_set) > 0:
+                    # pick a mutant
+                    m = random.choice(tuple(rem_set))
+                    # generate a test to kill m
+                    if len(mutants_to_killingtests[m]) > 0:
+                        t = random.choice(mutants_to_killingtests[m])
+                        TS_list[-1].append(t)
+                        # remove all collaterally killed mutants
+                        rem_set -= set(tests_to_killed_mutants[t]) & rem_set
+                    else:
+                        rem_set -= {m}
+                        
 
     # Computer sMS
     rand_sMS = []
