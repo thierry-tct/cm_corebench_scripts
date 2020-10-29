@@ -254,8 +254,8 @@ def main():
                 data_df.append({'Program': proj[:6], 'Subsuming MS': sMS, 'Tech': tech})
     data_df = pd.DataFrame(data_df)
     ax = sns.boxplot(x="Program", y="Subsuming MS", hue="Tech", data=data_df, linewidth=2.5)
-    plt.savefig(image_file+".pdf", format='pdf') #, bbox_extra_artists=(lgd,), bbox_inches='tight')
-    plt.close('all')
+    plot.plt.savefig(image_file+".pdf", format='pdf') #, bbox_extra_artists=(lgd,), bbox_inches='tight')
+    plot.plt.close('all')
     
     print("@DONE!")
 #~ def main()
