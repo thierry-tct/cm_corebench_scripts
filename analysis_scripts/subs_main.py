@@ -134,9 +134,8 @@ def load_data(in_top_dir, cache_file):
     if os.path.isfile(cache_file):
         all_tests, mutants_to_killingtests, tests_to_killed_mutants = subs_load.common_fs.loadJSON(cache_file)
         cache_projs = set(all_tests)
-        not_cached = projs - cache_projs
     else:
-        #not_cached = projs
+        cache_projs = set()
         all_tests = {}
         all_mutants = {}
         pred_mutants = {}
