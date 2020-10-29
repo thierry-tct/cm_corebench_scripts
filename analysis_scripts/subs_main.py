@@ -121,12 +121,14 @@ def getProjMatricesLabelFiles(in_top_dir, proj, commit=None):
     if commit is not None:
         label_data_folder = os.path.join(in_top_dir, "label_data")
         matrices_folder = os.path.join(in_top_dir, "matrices")
-        mat_file = os.path.join(matrices_folder, prog, commit, "STRONG_MUTATION.csv") # TODO, check
+        mat_file = os.path.join(matrices_folder, prog, commit, "STRONG_MUTATION.csv") # TODO, checkz
         label_file = os.path.join(label_data_folder, prog, commit, label.json)
+        mut_info_file = os.path.join(matrices_folder, prog, commit, "mutantsInfos.json")
     else:
         mat_file = os.path.join(in_top_dir, 'SEMu-Experiement-data', 'semu_cleaned_data', proj, 'STRONG_MUTATION.csv')
         label_file = os.path.join(in_top_dir, 'SEMu-Experiement-data', 'semu_cleaned_data', proj, 'subsuming-clusters.json')
-    return mat_file, label_file
+        mut_info_file = os.path.join(matrices_folder, prog, commit, "mutantsInfos.json")
+    return mat_file, label_file, mut_info_file
 #~ def getProjMatricesLabelFiles()
 
 def load_data(in_top_dir, model_in_dir, cache_file):
@@ -171,7 +173,7 @@ def load_data(in_top_dir, model_in_dir, cache_file):
             #continue
         
         # get clusters
-        sm_mat_file, label_data_file = getProjMatricesLabelFiles(in_top_dir, prog, commit=commit)
+        sm_mat_file, label_data_file, mut_info_file = getProjMatricesLabelFiles(in_top_dir, prog, commit=commit)
         raw_subs_clust = subs_load.common_fs.loadJSON(label_data_file)['subsume'][1]
         mutant_to_subs_cluster[pname] = {}
         subs_cluster_to_mutants[pname] = {}
@@ -182,6 +184,13 @@ def load_data(in_top_dir, model_in_dir, cache_file):
                 mutant_to_subs_cluster[pname][m_id] = c_id
         
         all_tests[pname], mutants_to_killingtests[pname], tests_to_killed_mutants[pname] = subs_load.load(sm_mat_file)
+        
+        # Add mutants not in matrix but in mutinfo
+        mif = subs_load.common_fs.loadJSON(mut_info_file)
+        for mut in minf:
+            mut = "mart_0:"+mut
+            if mut not in mutants_to_killingtests[pname]:
+                mutants_to_killingtests[pname][mut] = []
 
         all_mutants[pname] = all_muts_obj[pname]
         pred_mutants[pname] = pred_muts_obj[pname]
