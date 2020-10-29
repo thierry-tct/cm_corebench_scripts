@@ -280,7 +280,7 @@ def main():
 
         print("# Plotting ...")
         # Plot box plot
-        image_file = os.path.join(out_folder, "boxplot_all-{}-{}".format(used_fixed_size, ("pred_size" if fixed_size is None else fixed_size)))
+        image_file = os.path.join(out_folder, "boxplot_all-{}".format(("pred_size" if fixed_size is None else fixed_size)))
         data_df = []
         for proj, p_dat in sim_res.items():
             for tech, t_dat in p_dat.items():
