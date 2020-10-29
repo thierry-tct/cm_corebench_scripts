@@ -117,6 +117,18 @@ def get_subs_ms(test_suite, tests_to_killed_clusters):
     return subs_ms
 #~ def get_ms()
 
+def getProjMatricesLabelFiles(in_top_dir, proj, commit=None):
+    if commit is not None:
+        label_data_folder = os.path.join(in_top_dir, "label_data")
+        matrices_folder = os.path.join(in_top_dir, "matrices")
+        mat_file = os.path.join(matrices_folder, prog, commit, "STRONG_MUTATION.csv") # TODO, check
+        label_file = os.path.join(label_data_folder, prog, commit, label.json)
+    else:
+        mat_file = os.path.join(in_top_dir, 'semu_cleaned_data', proj, 'STRONG_MUTATION.csv')
+        label_file = os.path.join(in_top_dir, 'semu_cleaned_data', proj, 'subsuming-clusters.json')
+    return mat_file, label_file
+#~ def getProjMatricesLabelFiles()
+
 def load_data(in_top_dir, cache_file):
     # Get the project list
     if os.path.isfile(cache_file):
@@ -136,8 +148,6 @@ def load_data(in_top_dir, cache_file):
 
     pred_muts_json = os.path.join(in_top_dir, "predicted_mutants.json")
     all_muts_json = os.path.join(in_top_dir, "all_mutants.json")
-    label_data_folder = os.path.join(in_top_dir, "label_data")
-    matrices_folder = os.path.join(in_top_dir, "matrices")
 
     #update_cache = (len(not_cached) > 0)
     
@@ -148,12 +158,16 @@ def load_data(in_top_dir, cache_file):
     tq_data = tqdm.tqdm(list(pred_muts_obj))
     for pname in tq_data:
         tq_data.set_description("Loading {} ...".format(pname))
-        prog, commit = pname.split('_')
+        if '_' in pname:
+            prog, commit = pname.split('_')
+        else:
+            commit = None
+            prog = pname
         #if pname not in not_cached:
             #continue
         
         # get clusters
-        label_data_file = os.path.join(label_data_folder, prog, commit, label.json)
+        sm_mat_file, label_data_file = getProjMatricesLabelFiles(in_top_dir, prog, commit=commit)
         raw_subs_clust = load.common_fs.loadJSON(label_data_file)['subsume'][1]
         mutant_to_subs_cluster[pname] = {}
         subs_cluster_to_mutants[pname] = {}
@@ -163,7 +177,6 @@ def load_data(in_top_dir, cache_file):
                 assert m_id not in mutant_to_subs_cluster[pname]
                 mutant_to_subs_cluster[pname][m_id] = c_id
         
-        sm_mat_file = os.path.join(matrices_folder, prog, commit, "STRONG_MUTATION.csv") # TODO, check
         all_tests[pname], mutants_to_killingtests[pname], tests_to_killed_mutants[pname] = load.load(sm_mat_file)
 
         all_mutants[pname] = all_muts_obj[pname]
