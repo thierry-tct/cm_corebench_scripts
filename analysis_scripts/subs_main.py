@@ -325,6 +325,9 @@ def simulation(num_repet, test_list, mutant_list, pred_mutant_list,
                     # pick a mutant
                     m = random.choice(tuple(rem_set))
                     # generate a test to kill m
+                    if m not in mutants_to_killingtests:
+                        error_exit("Mutant not in mutants to killingtests. \n mutants_to_killing tests is {}. \nMissing mutants is {}".format(\
+                                                                                                                list(mutants_to_killingtests), m))
                     if len(mutants_to_killingtests[m]) > 0:
                         t = random.choice(mutants_to_killingtests[m])
                         TS_list[-1].append(t)
