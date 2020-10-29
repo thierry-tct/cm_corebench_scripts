@@ -124,8 +124,8 @@ def getProjMatricesLabelFiles(in_top_dir, proj, commit=None):
         mat_file = os.path.join(matrices_folder, prog, commit, "STRONG_MUTATION.csv") # TODO, check
         label_file = os.path.join(label_data_folder, prog, commit, label.json)
     else:
-        mat_file = os.path.join(in_top_dir, 'semu_cleaned_data', proj, 'STRONG_MUTATION.csv')
-        label_file = os.path.join(in_top_dir, 'semu_cleaned_data', proj, 'subsuming-clusters.json')
+        mat_file = os.path.join(in_top_dir, 'SEMu-Experiement-data', 'semu_cleaned_data', proj, 'STRONG_MUTATION.csv')
+        label_file = os.path.join(in_top_dir, 'SEMu-Experiement-data', 'semu_cleaned_data', proj, 'subsuming-clusters.json')
     return mat_file, label_file
 #~ def getProjMatricesLabelFiles()
 
@@ -197,15 +197,18 @@ def load_data(in_top_dir, cache_file):
 
 def main():
     relmut_pred_file = None
-    if len(sys.argv) != 3:
+    if len(sys.argv) != 3 and len(sys.argv) != 2:
         if len(sys.argv) == 4:
             relmut_pred_file = os.path.abspath(sys.argv[3])
             if not os.path.isfile(relmut_pred_file):
                 error_exit("relmut_pred_file not existing")
         else:
-            error_exit("expected 3 args. got {}". format(len(sys.argv)))
+            error_exit("expected 3 or 2 args. got {}". format(len(sys.argv)))
     in_top_dir = os.path.abspath(sys.argv[1])
-    out_top_dir = os.path.abspath(sys.argv[2])
+    if len(sys.argv) == 3:
+        out_top_dir = os.path.abspath(sys.argv[2])
+    else:
+        out_top_dir = in_top_dir
     if not os.path.isdir(in_top_dir):
         error_exit("in top dir missing ({})".format(in_top_dir))
     if not os.path.isdir(out_top_dir):
