@@ -187,7 +187,7 @@ def load_data(in_top_dir, cache_file):
         pred_mutants[pname] = pred_muts_obj[pname]
         
         tests_to_killed_subs_cluster[pname] = {}
-        for t, kmuts in tests_to_killed_mutants.items():
+        for t, kmuts in tests_to_killed_mutants[pname].items():
             tests_to_killed_subs_cluster[pname][t] = set()
             for km in kmuts:
                 if km in mutant_to_subs_cluster[pname]:
