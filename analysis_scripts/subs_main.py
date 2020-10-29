@@ -16,7 +16,7 @@ import pandas as pd
 
 import seaborn as sns
 
-import load
+import subs_load
 import plot
  
 STOP_AT_N_MUTANTS = 100 # None
@@ -132,7 +132,7 @@ def getProjMatricesLabelFiles(in_top_dir, proj, commit=None):
 def load_data(in_top_dir, cache_file):
     # Get the project list
     if os.path.isfile(cache_file):
-        all_tests, mutants_to_killingtests, tests_to_killed_mutants = load.common_fs.loadJSON(cache_file)
+        all_tests, mutants_to_killingtests, tests_to_killed_mutants = subs_load.common_fs.loadJSON(cache_file)
         cache_projs = set(all_tests)
         not_cached = projs - cache_projs
     else:
@@ -151,8 +151,8 @@ def load_data(in_top_dir, cache_file):
 
     #update_cache = (len(not_cached) > 0)
     
-    pred_muts_obj = load.common_fs.loadJSON(pred_muts_json)
-    all_muts_obj = load.common_fs.loadJSON(all_muts_json)
+    pred_muts_obj = subs_load.common_fs.loadJSON(pred_muts_json)
+    all_muts_obj = subs_load.common_fs.loadJSON(all_muts_json)
     
     # Load projects data
     tq_data = tqdm.tqdm(list(pred_muts_obj))
@@ -168,7 +168,7 @@ def load_data(in_top_dir, cache_file):
         
         # get clusters
         sm_mat_file, label_data_file = getProjMatricesLabelFiles(in_top_dir, prog, commit=commit)
-        raw_subs_clust = load.common_fs.loadJSON(label_data_file)['subsume'][1]
+        raw_subs_clust = subs_load.common_fs.loadJSON(label_data_file)['subsume'][1]
         mutant_to_subs_cluster[pname] = {}
         subs_cluster_to_mutants[pname] = {}
         for c_id, c in enumerate(raw_subs_clust):
@@ -177,7 +177,7 @@ def load_data(in_top_dir, cache_file):
                 assert m_id not in mutant_to_subs_cluster[pname]
                 mutant_to_subs_cluster[pname][m_id] = c_id
         
-        all_tests[pname], mutants_to_killingtests[pname], tests_to_killed_mutants[pname] = load.load(sm_mat_file)
+        all_tests[pname], mutants_to_killingtests[pname], tests_to_killed_mutants[pname] = subs_load.load(sm_mat_file)
 
         all_mutants[pname] = all_muts_obj[pname]
         pred_mutants[pname] = pred_muts_obj[pname]
