@@ -252,6 +252,7 @@ def main():
     # Simulation
     print ("# Running Simulations ...")
     for fixed_size in (None, 5, 10, 20, 30, "subs_cluster_size"):
+        proj2used_size = {}
         sim_res = {}
         tq_data = tqdm.tqdm(list(all_tests))
         for proj in tq_data:
@@ -259,8 +260,10 @@ def main():
 
             if fixed_size == "subs_cluster_size":
                 used_fixed_size = len(subs_cluster_to_mutant[proj])
+                proj2used_size[proj] = used_fixed_size
             elif fixed_size is None:
                 used_fixed_size = len(pred_mutants[proj])
+                proj2used_size[proj] = used_fixed_size
             else:
                 assert type(fixed_size) == int
                 used_fixed_size = fixed_size
@@ -278,6 +281,11 @@ def main():
                                                                              mutants_to_killingtests[proj], \
                                                                              fixed_size=used_fixed_size)
 
+        # Store sizes
+        if len(proj2used_size) > 0:
+            subs_load.common_fs.dumpJSON(proj2used_size, \
+                                         os.path.join(out_folder, "used_fixed_size-{}.json".format("pred_size" if fixed_size is None else fixed_size), pretty=True)
+            
         print("# Plotting ...")
         # Plot box plot
         image_file = os.path.join(out_folder, "boxplot_all-{}".format(("pred_size" if fixed_size is None else fixed_size)))
