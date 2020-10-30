@@ -284,7 +284,7 @@ def main():
         # Store sizes
         if len(proj2used_size) > 0:
             subs_load.common_fs.dumpJSON(proj2used_size, \
-                                         os.path.join(out_folder, "used_fixed_size-{}.json".format("pred_size" if fixed_size is None else fixed_size), pretty=True))
+                                         os.path.join(out_folder, "used_fixed_size-{}.json".format("pred_size" if fixed_size is None else fixed_size)), pretty=True)
             
         print("# Plotting ...")
         # Plot box plot
