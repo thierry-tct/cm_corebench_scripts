@@ -298,7 +298,7 @@ def main():
         if len(data_df) > 0:
             data_df = pd.DataFrame(data_df)
             plot.plt.figure(figsize=(16, 8)) 
-            ax = sns.boxplot(x="Program", y="Subsuming MS", hue="Tech", data=data_df, palette="Set3") #, linewidth=2.5)
+            ax = sns.boxplot(x="Program", y="Subsuming MS", hue="Tech", data=data_df, palette="Set3", medianprops={'linewidth':5}) #, linewidth=2.5)
             plot.plt.savefig(image_file+".pdf", format='pdf') #, bbox_extra_artists=(lgd,), bbox_inches='tight')
             plot.plt.close('all')
     
