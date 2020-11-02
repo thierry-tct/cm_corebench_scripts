@@ -289,6 +289,7 @@ def main():
         print("# Plotting ...")
         # Plot box plot
         image_file = os.path.join(out_folder, "boxplot_all-{}".format(("pred_size" if fixed_size is None else fixed_size)))
+        image_file_agg = os.path.join(out_folder, "merged_boxplot_all-{}".format(("pred_size" if fixed_size is None else fixed_size)))
         data_df = []
         for proj, p_dat in sim_res.items():
             for tech, t_dat in p_dat.items():
@@ -301,6 +302,9 @@ def main():
             plot.plt.savefig(image_file+".pdf", format='pdf') #, bbox_extra_artists=(lgd,), bbox_inches='tight')
             plot.plt.close('all')
     
+            pivot_df = data_df.pivot(columns='Techs', values="Subsuming MS")
+            order = ["PREDICTED", "RANDOM"]
+            plot.plotBoxes({c: pivot_df[c] for c order}, order, image_file_agg, plot.colors_bw, ylabel="Subsuming MS", yticks_range=plot.np.arange(0,1.01,0.2))
     print("@DONE!")
 #~ def main()
 
