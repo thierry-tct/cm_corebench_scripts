@@ -304,7 +304,7 @@ def main():
     
             pivot_df = data_df.pivot(columns='Techs', values="Subsuming MS")
             order = ["PREDICTED", "RANDOM"]
-            plot.plotBoxes({c: pivot_df[c] for c order}, order, image_file_agg, plot.colors_bw, ylabel="Subsuming MS", yticks_range=plot.np.arange(0,1.01,0.2))
+            plot.plotBoxes({c: list(pivot_df[c]) for c in order}, order, image_file_agg, plot.colors_bw, ylabel="Subsuming MS", yticks_range=plot.np.arange(0,1.01,0.2))
     print("@DONE!")
 #~ def main()
 
