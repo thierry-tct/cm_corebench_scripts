@@ -251,7 +251,7 @@ def main():
     
     # Simulation
     print ("# Running Simulations ...")
-    for fixed_size in (None, 5, 10, 20, 30, "subs_cluster_size"):
+    for fixed_size in (None,):# 5, 10, 20, 30, "subs_cluster_size"):
         proj2used_size = {}
         sim_res = {}
         tq_data = tqdm.tqdm(list(all_tests))
