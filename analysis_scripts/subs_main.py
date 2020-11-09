@@ -294,7 +294,7 @@ def main():
         for proj, p_dat in sim_res.items():
             for tech, t_dat in p_dat.items():
                 for sMS in t_dat:
-                    data_df.append({'Program': proj[:6], 'Subsuming MS': sMS, 'Tech': tech})
+                    data_df.append({'Program': proj[:10], 'Subsuming MS': sMS, 'Tech': tech})
         if len(data_df) > 0:
             yticks_range = plot.np.arange(0,1.01,0.2)
             
@@ -305,7 +305,7 @@ def main():
             plot.plt.savefig(image_file+".pdf", format='pdf') #, bbox_extra_artists=(lgd,), bbox_inches='tight')
             plot.plt.close('all')
     
-            pivot_df = data_df.pivot(columns='Tech', values="Subsuming MS")
+            pivot_df = data_df.pivot(index='Program', columns='Tech', values="Subsuming MS")
             order = ["PREDICTED", "RANDOM"]
             plot.plotBoxes({c: list(pivot_df[c]) for c in order}, order, image_file_agg, plot.colors_bw, ylabel="Subsuming MS", yticks_range=yticks_range)
     print("@DONE!")
