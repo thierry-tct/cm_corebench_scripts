@@ -301,7 +301,7 @@ def main():
             data_df = pd.DataFrame(data_df)
             plot.plt.figure(figsize=(16, 8)) 
             ax = sns.boxplot(x="Program", y="Subsuming MS", hue="Tech", data=data_df, palette="Set3", medianprops={'linewidth':5}) #, linewidth=2.5)
-            plt.yticks(yticks_range) #, fontsize=fontsize)
+            plot.plt.yticks(yticks_range) #, fontsize=fontsize)
             plot.plt.savefig(image_file+".pdf", format='pdf') #, bbox_extra_artists=(lgd,), bbox_inches='tight')
             plot.plt.close('all')
     
