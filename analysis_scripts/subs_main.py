@@ -296,15 +296,18 @@ def main():
                 for sMS in t_dat:
                     data_df.append({'Program': proj[:6], 'Subsuming MS': sMS, 'Tech': tech})
         if len(data_df) > 0:
+            yticks_range = plot.np.arange(0,1.01,0.2)
+            
             data_df = pd.DataFrame(data_df)
             plot.plt.figure(figsize=(16, 8)) 
             ax = sns.boxplot(x="Program", y="Subsuming MS", hue="Tech", data=data_df, palette="Set3", medianprops={'linewidth':5}) #, linewidth=2.5)
+            plt.yticks(yticks_range) #, fontsize=fontsize)
             plot.plt.savefig(image_file+".pdf", format='pdf') #, bbox_extra_artists=(lgd,), bbox_inches='tight')
             plot.plt.close('all')
     
             pivot_df = data_df.pivot(columns='Tech', values="Subsuming MS")
             order = ["PREDICTED", "RANDOM"]
-            plot.plotBoxes({c: list(pivot_df[c]) for c in order}, order, image_file_agg, plot.colors_bw, ylabel="Subsuming MS", yticks_range=plot.np.arange(0,1.01,0.2))
+            plot.plotBoxes({c: list(pivot_df[c]) for c in order}, order, image_file_agg, plot.colors_bw, ylabel="Subsuming MS", yticks_range=yticks_range)
     print("@DONE!")
 #~ def main()
 
