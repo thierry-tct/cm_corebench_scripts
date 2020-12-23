@@ -232,7 +232,7 @@ def load_data(in_top_dir, model_in_dir, cache=True):
                     tests_to_killed_subs_cluster[pname][t].add(mutant_to_subs_cluster[pname][km])
 
     if update_cache:
-        load.common_fs.dumpJSON([all_tests, fault_tests, relevant_mutants_to_relevant_tests, mutants_to_killingtests, tests_to_killed_mutants], cache_file)
+        subs_load.common_fs.dumpJSON([all_tests, fault_tests, relevant_mutants_to_relevant_tests, mutants_to_killingtests, tests_to_killed_mutants], cache_file)
         print ("# Cache Written, with {} projects!".format(len(all_tests)))
         
     return all_tests, all_mutants, machine_translation_mutants, decision_trees_mutants, mutants_to_killingtests, \
