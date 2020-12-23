@@ -177,7 +177,11 @@ def load_data(in_top_dir, model_in_dir, cache_file):
                     if 'mart_0:' not in pobj[i]:
                         pobj[i] = 'mart_0:' + pobj[i]
     
-    assert set(machine_translation_muts_obj) == set(decision_trees_muts_obj), "project mismatch between MT and DT"
+    assert set(machine_translation_muts_obj) == set(decision_trees_muts_obj), \
+                "project mismatch between MT and DT. \n >> MT - DT = {}\n >> DT - MT = {}\n".format(
+                        set(machine_translation_muts_obj) - set(decision_trees_muts_obj),
+                        set(decision_trees_muts_obj) - set(machine_translation_muts_obj)
+                    )
     
     # Load projects data
     tq_data = tqdm.tqdm(list(machine_translation_muts_obj))
