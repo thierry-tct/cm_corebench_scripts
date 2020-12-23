@@ -20,6 +20,10 @@ import subs_load
 import plot
  
 STOP_AT_N_MUTANTS = 100 # None
+RANDOM = "RANDOM"
+PRED_MACHINE_TRANSLATION = "MACHINE-TRANSLATION"
+PRED_DECISION_TREES = "DECISION-TREES"
+
 
 def error_exit(err):
     print("@Error: "+err)
@@ -140,28 +144,43 @@ def load_data(in_top_dir, model_in_dir, cache_file):
         cache_projs = set()
         all_tests = {}
         all_mutants = {}
-        pred_mutants = {}
+        machine_translation_mutants = {}
+        decision_trees_mutants = {}
         mutants_to_killingtests = {}
         tests_to_killed_mutants = {}
         tests_to_killed_subs_cluster = {}
         mutant_to_subs_cluster = {}
         subs_cluster_to_mutants = {}
 
-    pred_muts_json = os.path.join(model_in_dir, "predicted_mutants.json")
+    machine_translation_muts_json = os.path.join(model_in_dir, "predicted_mutants.json")
     all_muts_json = os.path.join(model_in_dir, "all_mutants.json")
+    decision_trees_muts_json = os.path.join(model_in_dir, "projects_probabilities.json")
 
     #update_cache = (len(not_cached) > 0)
     
-    pred_muts_obj = subs_load.common_fs.loadJSON(pred_muts_json)
+    machine_translation_muts_obj = subs_load.common_fs.loadJSON(machine_translation_muts_json)
+    decision_trees_muts_obj = subs_load.common_fs.loadJSON(decision_trees_muts_json)
     all_muts_obj = subs_load.common_fs.loadJSON(all_muts_json)
-    for obj in (pred_muts_obj, all_muts_obj):
+    for obj in (machine_translation_muts_obj, all_muts_obj, decision_trees_muts_obj):
         for pname, pobj in obj.items():
-            for i in range(len(pobj)):
-                if 'mart_0:' not in pobj[i]:
-                    pobj[i] = 'mart_0:' + pobj[i]
+            if type(pobj) == dict:
+                new_obj = {}
+                for k,v in pobj.items():
+                    if 'mart_0:' not in k:
+                        new_obj['mart_0:' + k] = v
+                    else:
+                        new_obj[k] = v
+                pobj.clear()
+                pobj.update(new_obj)
+            else:
+                for i in range(len(pobj)):
+                    if 'mart_0:' not in pobj[i]:
+                        pobj[i] = 'mart_0:' + pobj[i]
+    
+    assert set(machine_translation_muts_obj) == set(decision_trees_muts_obj), "project mismatch between MT and DT"
     
     # Load projects data
-    tq_data = tqdm.tqdm(list(pred_muts_obj))
+    tq_data = tqdm.tqdm(list(machine_translation_muts_obj))
     for pname in tq_data:
         tq_data.set_description("Loading {} ...".format(pname))
         if '_' in pname:
@@ -193,7 +212,8 @@ def load_data(in_top_dir, model_in_dir, cache_file):
                 mutants_to_killingtests[pname][mut] = []
 
         all_mutants[pname] = all_muts_obj[pname]
-        pred_mutants[pname] = pred_muts_obj[pname]
+        machine_translation_mutants[pname] = machine_translation_muts_obj[pname]
+        decision_trees_mutants[pname] = decision_trees_muts_obj[pname]
         
         tests_to_killed_subs_cluster[pname] = {}
         for t, kmuts in tests_to_killed_mutants[pname].items():
@@ -205,18 +225,20 @@ def load_data(in_top_dir, model_in_dir, cache_file):
     #if update_cache:
         #load.common_fs.dumpJSON([all_tests, fault_tests, relevant_mutants_to_relevant_tests, mutants_to_killingtests, tests_to_killed_mutants], cache_file)
         
-    return all_tests, all_mutants, pred_mutants, mutants_to_killingtests, tests_to_killed_mutants, tests_to_killed_subs_cluster, mutant_to_subs_cluster, subs_cluster_to_mutants
+    return all_tests, all_mutants, machine_translation_mutants, decision_trees_mutants, mutants_to_killingtests, \
+            tests_to_killed_mutants, tests_to_killed_subs_cluster, mutant_to_subs_cluster, subs_cluster_to_mutants
 #~ def load_data()
 
 def main():
-    relmut_pred_file = None
+    #relmut_pred_file = None
     if len(sys.argv) != 3:
-        if len(sys.argv) == 4:
-            relmut_pred_file = os.path.abspath(sys.argv[3])
-            if not os.path.isfile(relmut_pred_file):
-                error_exit("relmut_pred_file not existing")
-        else:
-            error_exit("expected 3 or 2 args. got {}". format(len(sys.argv)))
+        #if len(sys.argv) == 4:
+        #    relmut_pred_file = os.path.abspath(sys.argv[3])
+        #    if not os.path.isfile(relmut_pred_file):
+        #        error_exit("relmut_pred_file not existing")
+        #else:
+        #    error_exit("expected 3 or 2 args. got {}". format(len(sys.argv)))
+        error_exit("expected 2 args. got {}". format(len(sys.argv)))
     in_top_dir = os.path.abspath(sys.argv[1])
     out_top_dir = in_top_dir
     model_in_dir = os.path.abspath(sys.argv[2])
@@ -234,17 +256,18 @@ def main():
     # load data
     print("# LOADING DATA ...")
     cache_file = os.path.join(out_folder, "cache_file.json")
-    all_tests, all_mutants, pred_mutants, mutants_to_killingtests, tests_to_killed_mutants, tests_to_killed_subs_cluster, mutant_to_subs_cluster, subs_cluster_to_mutant = \
+    all_tests, all_mutants, machine_translation_mutants, decision_trees_mutants, mutants_to_killingtests, \
+        tests_to_killed_mutants, tests_to_killed_subs_cluster, mutant_to_subs_cluster, subs_cluster_to_mutant = \
 								              load_data(in_top_dir, model_in_dir, cache_file)
 
     # Save some data about prediction cluster coverage
     pred_clust_cov = {}
-    for proj, mut_list in pred_mutants.items():
+    for proj, mut_list in machine_translation_mutants.items():
         cc_prop = {}
         for c, m_set in subs_cluster_to_mutant[proj].items():
             cc_prop[c] = len(set(mut_list) & set(m_set)) * 100.0 / len(m_set)
         pred_clust_cov[proj] = cc_prop
-    pred_clust_cov_file = os.path.join(out_folder, "Prediction_subs_cluster_coverage.json")
+    pred_clust_cov_file = os.path.join(out_folder, "Pred_machine_translation-subs_cluster_coverage.json")
     subs_load.common_fs.dumpJSON(pred_clust_cov, pred_clust_cov_file, pretty=True)
     
     num_repet = 1000
@@ -262,20 +285,22 @@ def main():
                 used_fixed_size = len(subs_cluster_to_mutant[proj])
                 proj2used_size[proj] = used_fixed_size
             elif fixed_size is None:
-                used_fixed_size = len(pred_mutants[proj])
+                used_fixed_size = len(machine_translation_mutants[proj])
                 proj2used_size[proj] = used_fixed_size
             else:
                 assert type(fixed_size) == int
                 used_fixed_size = fixed_size
                 
-            if used_fixed_size > len(pred_mutants[proj]):
+            if used_fixed_size > len(machine_translation_mutants[proj]):
                 # not enough data to check
                 continue
                 
-            sim_res[proj] = {'RANDOM': None, "PREDICTED": None}
-            sim_res[proj]["RANDOM"], sim_res[proj]["PREDICTED"] = simulation(num_repet, all_tests[proj], \
+            sim_res[proj] = {RANDOM: None, PRED_MACHINE_TRANSLATION: None}
+            sim_res[proj][RANDOM], sim_res[proj][PRED_MACHINE_TRANSLATION], \
+                                sim_res[proj][PRED_DECISION_TREES] = simulation(num_repet, all_tests[proj], \
                                                                              all_mutants[proj], \
-                                                                             pred_mutants[proj], \
+                                                                             machine_translation_mutants[proj], \
+                                                                             decision_trees_mutants[proj], \
                                                                              tests_to_killed_mutants[proj], \
                                                                              tests_to_killed_subs_cluster[proj], \
                                                                              mutants_to_killingtests[proj], \
@@ -290,7 +315,7 @@ def main():
         # Plot box plot
         image_file = os.path.join(out_folder, "boxplot_all-{}".format(("pred_size" if fixed_size is None else fixed_size)))
         image_file_agg = os.path.join(out_folder, "merged_boxplot_all-{}".format(("pred_size" if fixed_size is None else fixed_size)))
-        order = ["PREDICTED", "RANDOM"]
+        order = [PRED_MACHINE_TRANSLATION, PRED_DECISION_TREES, RANDOM]
         data_df = []
         merged_dat = {t: [] for t in order}
         for proj, p_dat in sim_res.items():
@@ -312,24 +337,32 @@ def main():
     print("@DONE!")
 #~ def main()
 
-def simulation(num_repet, test_list, mutant_list, pred_mutant_list,
+def simulation(num_repet, test_list, mutant_list, machine_translation_mutant_list,
+                  decision_trees_mutant_dict,
                   tests_to_killed_mutants, tests_to_killed_subs_cluster, 
                   mutants_to_killingtests, fixed_size=None):
     ordered_tests_mode = False
     
     if fixed_size is None:
-        selection_size = len(pred_mutant_list)
+        selection_size = len(machine_translation_mutant_list)
     else:
         selection_size = fixed_size
     random_test_suites = []
-    pred_test_suites = []
+    machine_translation_test_suites = []
+    decision_trees_test_suites = []
     for repet_id in range(num_repet):
         # randomly sample
         random_M = set(random.sample(mutant_list, selection_size))
-        pred_M = set(random.sample(pred_mutant_list, selection_size))
+        machine_translation_M = set(random.sample(machine_translation_mutant_list, selection_size))
+        decision_trees_M = set(sorted(
+                                        random.sample(mutant_list, len(mutant_list)), 
+                                        reverse=True, 
+                                        key=lambda x: decision_trees_mutant_dict[x]
+                                    ) [selection_size])
 
         random_test_suites.append([])
-        pred_test_suites.append([])
+        machine_translation_test_suites.append([])
+        decision_trees_test_suites.append([])
         
         if ordered_tests_mode:
             test_order = list(test_list)
@@ -337,15 +370,20 @@ def simulation(num_repet, test_list, mutant_list, pred_mutant_list,
             for t in test_order:
                 # get killed mutants
                 rand_kill_mut = set(tests_to_killed_mutants[t]) & random_M
-                pred_kill_mut = set(tests_to_killed_mutants[t]) & pred_M
+                machine_translation_kill_mut = set(tests_to_killed_mutants[t]) & machine_translation_M
+                decision_trees_kill_mut = set(tests_to_killed_mutants[t]) & decision_trees_M
                 if len(rand_kill_mut) > 0:
                     random_test_suites[-1].append(t)
                     random_M -= rand_kill_mut
-                if len(pred_kill_mut) > 0:
-                    pred_test_suites[-1].append(t)
-                    pred_M -= pred_kill_mut
+                if len(machine_translation_kill_mut) > 0:
+                    machine_translation_test_suites[-1].append(t)
+                    machine_translation_M -= machine_translation_kill_mut
+                if len(decision_trees_kill_mut) > 0:
+                    decision_trees_test_suites[-1].append(t)
+                    decision_trees_M -= decision_trees_kill_mut
         else:
-            for rem_set, TS_list in [(random_M, random_test_suites), (pred_M, pred_test_suites)]:
+            for rem_set, TS_list in [(random_M, random_test_suites), (machine_translation_M, machine_translation_test_suites), \
+                                                                                (decision_trees_M, decision_trees_test_suites)]:
                 while len(rem_set) > 0:
                     # pick a mutant
                     m = random.choice(tuple(rem_set))
@@ -364,13 +402,15 @@ def simulation(num_repet, test_list, mutant_list, pred_mutant_list,
 
     # Computer sMS
     rand_sMS = []
-    pred_sMS = []
+    machine_translation_sMS = []
     for ts in random_test_suites:
         rand_sMS.append(get_subs_ms(ts, tests_to_killed_subs_cluster))
-    for ts in pred_test_suites:
-        pred_sMS.append(get_subs_ms(ts, tests_to_killed_subs_cluster))
+    for ts in machine_translation_test_suites:
+        machine_translation_sMS.append(get_subs_ms(ts, tests_to_killed_subs_cluster))
+    for ts in decision_trees_test_suites:
+        decision_trees_sMS.append(get_subs_ms(ts, tests_to_killed_subs_cluster))
 
-    return rand_sMS, pred_sMS
+    return rand_sMS, machine_translation_sMS, decision_trees_sMS
 #~ def simulation()
     
 def stat_test (left_FR, left_rMS, left_name, right_FR, right_rMS, right_name):
