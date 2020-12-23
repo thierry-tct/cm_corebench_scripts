@@ -135,13 +135,16 @@ def getProjMatricesLabelFiles(in_top_dir, proj, commit=None):
     return mat_file, label_file, mut_info_file
 #~ def getProjMatricesLabelFiles()
 
-def load_data(in_top_dir, model_in_dir, cache_file):
+def load_data(in_top_dir, model_in_dir, cache=True):
+	cache_file = os.path.join(model_in_dir, "_cache_file.json")
+    
     # Get the project list
     if os.path.isfile(cache_file):
         all_tests, mutants_to_killingtests, tests_to_killed_mutants = subs_load.common_fs.loadJSON(cache_file)
-        cache_projs = set(all_tests)
+        #cache_projs = set(all_tests)
+        print ("# Cache loaded with {} projects.".format(len(all_tests)))
     else:
-        cache_projs = set()
+        #cache_projs = set()
         all_tests = {}
         all_mutants = {}
         machine_translation_mutants = {}
@@ -156,7 +159,7 @@ def load_data(in_top_dir, model_in_dir, cache_file):
     all_muts_json = os.path.join(model_in_dir, "all_mutants.json")
     decision_trees_muts_json = os.path.join(model_in_dir, "projects_probabilities.json")
 
-    #update_cache = (len(not_cached) > 0)
+    update_cache = False
     
     machine_translation_muts_obj = subs_load.common_fs.loadJSON(machine_translation_muts_json)
     decision_trees_muts_obj = subs_load.common_fs.loadJSON(decision_trees_muts_json)
@@ -206,7 +209,9 @@ def load_data(in_top_dir, model_in_dir, cache_file):
                 assert m_id not in mutant_to_subs_cluster[pname]
                 mutant_to_subs_cluster[pname][m_id] = c_id
         
-        all_tests[pname], mutants_to_killingtests[pname], tests_to_killed_mutants[pname] = subs_load.load(sm_mat_file)
+        if pname not in all_tests:
+            all_tests[pname], mutants_to_killingtests[pname], tests_to_killed_mutants[pname] = subs_load.load(sm_mat_file)
+            update_cache = True
         
         # Add mutants not in matrix but in mutinfo
         minf = subs_load.common_fs.loadJSON(mut_info_file)
@@ -226,8 +231,9 @@ def load_data(in_top_dir, model_in_dir, cache_file):
                 if km in mutant_to_subs_cluster[pname]:
                     tests_to_killed_subs_cluster[pname][t].add(mutant_to_subs_cluster[pname][km])
 
-    #if update_cache:
-        #load.common_fs.dumpJSON([all_tests, fault_tests, relevant_mutants_to_relevant_tests, mutants_to_killingtests, tests_to_killed_mutants], cache_file)
+    if update_cache:
+        load.common_fs.dumpJSON([all_tests, fault_tests, relevant_mutants_to_relevant_tests, mutants_to_killingtests, tests_to_killed_mutants], cache_file)
+        print ("# Cache Written, with {} projects!".format(len(all_tests)))
         
     return all_tests, all_mutants, machine_translation_mutants, decision_trees_mutants, mutants_to_killingtests, \
             tests_to_killed_mutants, tests_to_killed_subs_cluster, mutant_to_subs_cluster, subs_cluster_to_mutants
@@ -259,10 +265,9 @@ def main():
 
     # load data
     print("# LOADING DATA ...")
-    cache_file = os.path.join(out_folder, "cache_file.json")
     all_tests, all_mutants, machine_translation_mutants, decision_trees_mutants, mutants_to_killingtests, \
         tests_to_killed_mutants, tests_to_killed_subs_cluster, mutant_to_subs_cluster, subs_cluster_to_mutant = \
-								              load_data(in_top_dir, model_in_dir, cache_file)
+								              load_data(in_top_dir, model_in_dir, cache=True)
 
     # Save some data about prediction cluster coverage
     pred_clust_cov = {}
