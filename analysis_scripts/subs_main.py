@@ -136,7 +136,7 @@ def getProjMatricesLabelFiles(in_top_dir, proj, commit=None):
 #~ def getProjMatricesLabelFiles()
 
 def load_data(in_top_dir, model_in_dir, cache=True):
-	cache_file = os.path.join(model_in_dir, "_cache_file.json")
+    cache_file = os.path.join(model_in_dir, "_cache_file.json")
     
     # Get the project list
     if os.path.isfile(cache_file):
