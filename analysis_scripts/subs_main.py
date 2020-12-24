@@ -403,17 +403,17 @@ def simulation(num_repet, test_list, mutant_list, machine_translation_mutant_lis
                                                       (decision_trees_M, decision_trees_test_suites)]):
                 while len(rem_set) > 0:
                     # pick a mutant
-                    m = random.choice(tuple(rem_set))
+                    if pos == 2: 
+                        # decision trees
+                        m = max(rem_set, key=lambda x: float(decision_trees_mutant_dict[x]))
+                    else:
+                        m = random.choice(tuple(rem_set))
                     # generate a test to kill m
                     if m not in mutants_to_killingtests:
                         error_exit("Mutant not in mutants to killingtests. \n mutants_to_killing tests is {}. \nMissing mutants is {}".format(\
                                                                                                                 list(mutants_to_killingtests), m))
                     if len(mutants_to_killingtests[m]) > 0:
-                        if pos == 2: 
-                            # decision trees
-                            t = max(mutants_to_killingtests[m], key=lambda x: float(decision_trees_mutant_dict[x]))
-                        else:
-                            t = random.choice(mutants_to_killingtests[m])
+                        t = random.choice(mutants_to_killingtests[m])
                         TS_list[-1].append(t)
                         # remove all collaterally killed mutants
                         rem_set -= set(tests_to_killed_mutants[t]) & rem_set
