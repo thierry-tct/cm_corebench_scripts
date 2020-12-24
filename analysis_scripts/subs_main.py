@@ -225,6 +225,12 @@ def load_data(in_top_dir, model_in_dir, cache=True):
         machine_translation_mutants[pname] = machine_translation_muts_obj[pname]
         decision_trees_mutants[pname] = decision_trees_muts_obj[pname]
         
+	#assert set(all_mutants[pname]) == set(decision_trees_mutants[pname]), \
+        assert len(set(all_mutants[pname]) - set(decision_trees_mutants[pname])) == 0, \
+                "mismatch between all_mutants and DT for pname {}.\n DT - all = {}. \n all - DT = {}".format(
+                        #pname, set(decision_trees_mutants[pname]) - set(all_mutants[pname]), set(all_mutants[pname]) - set(decision_trees_mutants[pname])) #DBG
+                        pname, len(set(decision_trees_mutants[pname]) - set(all_mutants[pname])), len(set(all_mutants[pname]) - set(decision_trees_mutants[pname]))) #DBG
+	
         tests_to_killed_subs_cluster[pname] = {}
         for t, kmuts in tests_to_killed_mutants[pname].items():
             tests_to_killed_subs_cluster[pname][t] = set()
