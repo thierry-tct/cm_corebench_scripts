@@ -419,6 +419,7 @@ def simulation(num_repet, test_list, mutant_list, machine_translation_mutant_lis
     # Computer sMS
     rand_sMS = []
     machine_translation_sMS = []
+    decision_trees_sMS = []
     for ts in random_test_suites:
         rand_sMS.append(get_subs_ms(ts, tests_to_killed_subs_cluster))
     for ts in machine_translation_test_suites:
