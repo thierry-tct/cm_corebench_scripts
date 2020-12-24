@@ -368,7 +368,7 @@ def simulation(num_repet, test_list, mutant_list, machine_translation_mutant_lis
                                         random.sample(mutant_list, len(mutant_list)), 
                                         reverse=True, 
                                         key=lambda x: decision_trees_mutant_dict[x]
-                                    ) [selection_size])
+                                    ) [:selection_size])
 
         random_test_suites.append([])
         machine_translation_test_suites.append([])
