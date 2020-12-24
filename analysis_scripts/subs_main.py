@@ -373,7 +373,7 @@ def simulation(num_repet, test_list, mutant_list, machine_translation_mutant_lis
         decision_trees_M = set(sorted(
                                         random.sample(mutant_list, len(mutant_list)), 
                                         reverse=True, 
-                                        key=lambda x: decision_trees_mutant_dict[x]
+                                        key=lambda x: float(decision_trees_mutant_dict[x])
                                     ) [:selection_size])
 
         random_test_suites.append([])
@@ -398,8 +398,9 @@ def simulation(num_repet, test_list, mutant_list, machine_translation_mutant_lis
                     decision_trees_test_suites[-1].append(t)
                     decision_trees_M -= decision_trees_kill_mut
         else:
-            for rem_set, TS_list in [(random_M, random_test_suites), (machine_translation_M, machine_translation_test_suites), \
-                                                                                (decision_trees_M, decision_trees_test_suites)]:
+            for pos, (rem_set, TS_list) in enumerate([(random_M, random_test_suites), \
+                                                      (machine_translation_M, machine_translation_test_suites), \
+                                                      (decision_trees_M, decision_trees_test_suites)]):
                 while len(rem_set) > 0:
                     # pick a mutant
                     m = random.choice(tuple(rem_set))
@@ -408,7 +409,11 @@ def simulation(num_repet, test_list, mutant_list, machine_translation_mutant_lis
                         error_exit("Mutant not in mutants to killingtests. \n mutants_to_killing tests is {}. \nMissing mutants is {}".format(\
                                                                                                                 list(mutants_to_killingtests), m))
                     if len(mutants_to_killingtests[m]) > 0:
-                        t = random.choice(mutants_to_killingtests[m])
+                        if pos == 2: 
+                            # decision trees
+                            t = max(mutants_to_killingtests[m], key=lambda x: float(decision_trees_mutant_dict[x]))
+                        else:
+                            t = random.choice(mutants_to_killingtests[m])
                         TS_list[-1].append(t)
                         # remove all collaterally killed mutants
                         rem_set -= set(tests_to_killed_mutants[t]) & rem_set
