@@ -297,7 +297,7 @@ def main():
         test_execution_cost_obj = {}
         tq_data = tqdm.tqdm(list(all_tests))
         for proj in tq_data:
-            tq_data.set_description("Loading {} ...".format(proj))
+            tq_data.set_description("Simulating for {} ...".format(proj))
 
             if fixed_size == "subs_cluster_size":
                 used_fixed_size = len(subs_cluster_to_mutant[proj])
