@@ -381,7 +381,9 @@ def simulation(num_repet, test_list, mutant_list, machine_translation_mutant_lis
     decision_trees_test_suites = []
     mutant_analysis_cost = {n: [] for n in (RANDOM, PRED_MACHINE_TRANSLATION, PRED_DECISION_TREES)}
     test_execution_cost = {n: [] for n in (RANDOM, PRED_MACHINE_TRANSLATION, PRED_DECISION_TREES)}
-    for repet_id in range(num_repet):
+    
+    repet_bar = tqdm(range(num_repet), desc='Repetitions', leave=False)
+    for repet_id in repet_bar:
         # randomly sample
         random_M = set(random.sample(mutant_list, selection_size))
         machine_translation_M = set(random.sample(machine_translation_mutant_list, selection_size))
