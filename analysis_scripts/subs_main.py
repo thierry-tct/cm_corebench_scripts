@@ -413,9 +413,9 @@ def simulation(num_repet, test_list, mutant_list, machine_translation_mutant_lis
                     decision_trees_test_suites[-1].append(t)
                     decision_trees_M -= decision_trees_kill_mut
         else:
-            for techname, rem_set, TS_list in enumerate([(RANDOM, random_M, random_test_suites), \
+            for techname, rem_set, TS_list in [(RANDOM, random_M, random_test_suites), \
                                                       (PRED_MACHINE_TRANSLATION, machine_translation_M, machine_translation_test_suites), \
-                                                      (PRED_DECISION_TREES, decision_trees_M, decision_trees_test_suites)]):
+                                                      (PRED_DECISION_TREES, decision_trees_M, decision_trees_test_suites)]:
                 analysed_muts_num = 0
                 exec_tests_num = 0
                 while len(rem_set) > 0:
