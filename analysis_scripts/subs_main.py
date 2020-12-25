@@ -286,13 +286,15 @@ def main():
     pred_clust_cov_file = os.path.join(out_folder, "Pred_machine_translation-subs_cluster_coverage.json")
     subs_load.common_fs.dumpJSON(pred_clust_cov, pred_clust_cov_file, pretty=True)
     
-    num_repet = 1000
+    num_repet = 10000 #1000
     
     # Simulation
     print ("# Running Simulations ...")
     for fixed_size in (None,):# 5, 10, 20, 30, "subs_cluster_size"):
         proj2used_size = {}
         sim_res = {}
+        mutant_analysis_cost_obj = {}
+        test_execution_cost_obj = {}
         tq_data = tqdm.tqdm(list(all_tests))
         for proj in tq_data:
             tq_data.set_description("Loading {} ...".format(proj))
@@ -313,7 +315,9 @@ def main():
                 
             sim_res[proj] = {RANDOM: None, PRED_MACHINE_TRANSLATION: None}
             sim_res[proj][RANDOM], sim_res[proj][PRED_MACHINE_TRANSLATION], \
-                                sim_res[proj][PRED_DECISION_TREES] = simulation(num_repet, all_tests[proj], \
+                                sim_res[proj][PRED_DECISION_TREES], \
+                                mutant_analysis_cost_obj[proj], \
+                                test_execution_cost_obj[proj] = simulation(num_repet, all_tests[proj], \
                                                                              all_mutants[proj], \
                                                                              machine_translation_mutants[proj], \
                                                                              decision_trees_mutants[proj], \
@@ -328,28 +332,37 @@ def main():
                                          os.path.join(out_folder, "used_fixed_size-{}.json".format("pred_size" if fixed_size is None else fixed_size)), pretty=True)
             
         print("# Plotting ...")
-        # Plot box plot
-        image_file = os.path.join(out_folder, "boxplot_all-{}".format(("pred_size" if fixed_size is None else fixed_size)))
-        image_file_agg = os.path.join(out_folder, "merged_boxplot_all-{}".format(("pred_size" if fixed_size is None else fixed_size)))
-        order = [PRED_MACHINE_TRANSLATION, PRED_DECISION_TREES, RANDOM]
-        data_df = []
-        merged_dat = {t: [] for t in order}
-        for proj, p_dat in sim_res.items():
-            for tech, t_dat in p_dat.items():
-                for sMS in t_dat:
-                    data_df.append({'Program': proj[:10], 'Subsuming MS': sMS, 'Tech': tech})
-                    merged_dat[tech].append(sMS)
-        if len(data_df) > 0:
-            yticks_range = plot.np.arange(0,1.01,0.2)
-            
-            data_df = pd.DataFrame(data_df)
-            plot.plt.figure(figsize=(16, 8)) 
-            ax = sns.boxplot(x="Program", y="Subsuming MS", hue="Tech", data=data_df, palette="Set3", medianprops={'linewidth':5}) #, linewidth=2.5)
-            plot.plt.yticks(yticks_range) #, fontsize=fontsize)
-            plot.plt.savefig(image_file+".pdf", format='pdf') #, bbox_extra_artists=(lgd,), bbox_inches='tight')
-            plot.plt.close('all')
-    
-            plot.plotBoxes(merged_dat, order, image_file_agg, plot.colors_bw, ylabel="Subsuming MS", yticks_range=yticks_range)
+        for metric, data_obj in [('Subsuming MS', sim_res), ('# Mutant Analysed', mutant_analysis_cost_obj), ('# Tests Executed', test_execution_cost_obj)]:
+            # Plot box plot
+            image_file = os.path.join(out_folder, metric.replace('#', 'num').replace(' ', '_') + '-' + \
+                                                                "boxplot_all-{}".format(("pred_size" if fixed_size is None else fixed_size)))
+            image_file_agg = os.path.join(out_folder, metric.replace('#', 'num').replace(' ', '_') + '-' + \
+                                                                "merged_boxplot_all-{}".format(("pred_size" if fixed_size is None else fixed_size)))
+            order = [PRED_MACHINE_TRANSLATION, PRED_DECISION_TREES, RANDOM]
+            data_df = []
+            merged_dat = {t: [] for t in order}
+            max_metric_val = 0
+            for proj, p_dat in data_obj.items():
+                for tech, t_dat in p_dat.items():
+                    for metric_val in t_dat:
+                        data_df.append({'Program': proj[:10], metric: metric_val, 'Tech': tech})
+                        merged_dat[tech].append(metric_val)
+                        if metric_val > max_metric_val:
+                            max_metric_val = metric_val
+            if len(data_df) > 0:
+                if metric == 'Subsuming MS':
+                    yticks_range = plot.np.arange(0,1.01,0.2)
+                else:
+                    yticks_range = plot.np.linspace(0, max_metric_val + 1, 10)
+
+                data_df = pd.DataFrame(data_df)
+                plot.plt.figure(figsize=(16, 8)) 
+                ax = sns.boxplot(x="Program", y=metric, hue="Tech", data=data_df, palette="Set3", medianprops={'linewidth':5}) #, linewidth=2.5)
+                plot.plt.yticks(yticks_range) #, fontsize=fontsize)
+                plot.plt.savefig(image_file+".pdf", format='pdf') #, bbox_extra_artists=(lgd,), bbox_inches='tight')
+                plot.plt.close('all')
+
+                plot.plotBoxes(merged_dat, order, image_file_agg, plot.colors_bw, ylabel=metric, yticks_range=yticks_range)
     print("@DONE!")
 #~ def main()
 
@@ -366,6 +379,8 @@ def simulation(num_repet, test_list, mutant_list, machine_translation_mutant_lis
     random_test_suites = []
     machine_translation_test_suites = []
     decision_trees_test_suites = []
+    mutant_analysis_cost = {n: [] for n in (RANDOM, PRED_MACHINE_TRANSLATION, PRED_DECISION_TREES)}
+    test_execution_cost = {n: [] for n in (RANDOM, PRED_MACHINE_TRANSLATION, PRED_DECISION_TREES)}
     for repet_id in range(num_repet):
         # randomly sample
         random_M = set(random.sample(mutant_list, selection_size))
@@ -398,27 +413,40 @@ def simulation(num_repet, test_list, mutant_list, machine_translation_mutant_lis
                     decision_trees_test_suites[-1].append(t)
                     decision_trees_M -= decision_trees_kill_mut
         else:
-            for pos, (rem_set, TS_list) in enumerate([(random_M, random_test_suites), \
-                                                      (machine_translation_M, machine_translation_test_suites), \
-                                                      (decision_trees_M, decision_trees_test_suites)]):
+            for techname, rem_set, TS_list in enumerate([(RANDOM, random_M, random_test_suites), \
+                                                      (PRED_MACHINE_TRANSLATION, machine_translation_M, machine_translation_test_suites), \
+                                                      (PRED_DECISION_TREES, decision_trees_M, decision_trees_test_suites)]):
+                analysed_muts_num = 0
+                exec_tests_num = 0
                 while len(rem_set) > 0:
                     # pick a mutant
-                    if pos == 2: 
+                    if techname == PRED_DECISION_TREES: 
                         # decision trees
                         m = max(rem_set, key=lambda x: float(decision_trees_mutant_dict[x]))
                     else:
                         m = random.choice(tuple(rem_set))
+                        
                     # generate a test to kill m
                     if m not in mutants_to_killingtests:
                         error_exit("Mutant not in mutants to killingtests. \n mutants_to_killing tests is {}. \nMissing mutants is {}".format(\
                                                                                                                 list(mutants_to_killingtests), m))
+          
+                    analysed_muts_num += 1
+          
                     if len(mutants_to_killingtests[m]) > 0:
+                        # The tests is executed with all remaining mutant
+                        exec_tests_num += len(rem_set)
+                        
+                        # generate a test
                         t = random.choice(mutants_to_killingtests[m])
                         TS_list[-1].append(t)
                         # remove all collaterally killed mutants
                         rem_set -= set(tests_to_killed_mutants[t]) & rem_set
                     else:
                         rem_set -= {m}
+                        
+                mutant_analysis_cost[techname].append(analysed_muts_num)
+                test_execution_cost[techname].append(exec_tests_num)
                         
 
     # Computer sMS
@@ -432,7 +460,7 @@ def simulation(num_repet, test_list, mutant_list, machine_translation_mutant_lis
     for ts in decision_trees_test_suites:
         decision_trees_sMS.append(get_subs_ms(ts, tests_to_killed_subs_cluster))
 
-    return rand_sMS, machine_translation_sMS, decision_trees_sMS
+    return rand_sMS, machine_translation_sMS, decision_trees_sMS, mutant_analysis_cost, test_execution_cost
 #~ def simulation()
     
 def stat_test (left_FR, left_rMS, left_name, right_FR, right_rMS, right_name):
