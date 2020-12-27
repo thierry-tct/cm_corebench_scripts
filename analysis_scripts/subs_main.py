@@ -338,6 +338,8 @@ def main():
                                                                 "boxplot_all-{}".format(("pred_size" if fixed_size is None else fixed_size)))
             image_file_agg = os.path.join(out_folder, metric.replace('#', 'num').replace(' ', '_') + '-' + \
                                                                 "merged_boxplot_all-{}".format(("pred_size" if fixed_size is None else fixed_size)))
+            median_file_agg = os.path.join(out_folder, metric.replace('#', 'num').replace(' ', '_') + '-' + \
+                                                                "merged_boxplot_all-{}".format(("pred_size" if fixed_size is None else fixed_size)) + "-median.json")
             order = [PRED_MACHINE_TRANSLATION, PRED_DECISION_TREES, RANDOM]
             data_df = []
             merged_dat = {t: [] for t in order}
@@ -362,7 +364,8 @@ def main():
                 plot.plt.savefig(image_file+".pdf", format='pdf') #, bbox_extra_artists=(lgd,), bbox_inches='tight')
                 plot.plt.close('all')
 
-                plot.plotBoxes(merged_dat, order, image_file_agg, plot.colors_bw, ylabel=metric, yticks_range=yticks_range)
+                median_list = plot.plotBoxes(merged_dat, order, image_file_agg, plot.colors_bw, ylabel=metric, yticks_range=yticks_range)
+                load.common_fs.dumpJSON({order[i]: median_list[i] for i in range(len(median_list))}, median_file_agg, pretty=True)
     print("@DONE!")
 #~ def main()
 
