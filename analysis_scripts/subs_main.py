@@ -54,7 +54,7 @@ def wilcoxon(list1, list2, isranksum=True):
 
 #############################################
 
- def inner_stattest(in_data, filename, order=None):
+def inner_stattest(in_data, filename, order=None):
     """ 
         in_data = {'tech1': value_list1, 'tech2': value_list2, ...}
         or
