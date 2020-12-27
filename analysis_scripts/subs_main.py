@@ -54,6 +54,37 @@ def wilcoxon(list1, list2, isranksum=True):
 
 #############################################
 
+ def inner_stattest(in_data, filename, order=None):
+    """ 
+        in_data = {'tech1': value_list1, 'tech2': value_list2, ...}
+        or
+        in_data = {'tech1': {'proj1': value_list1, ...}, 'tech2': {'proj2': value_list2, ...}, ...}
+    """
+    if order is None:
+        order = list(in_data)
+        
+    statstest_obj = {}
+    for pos1,g1 in enumerate(order):
+        for pos2, g2 in enumerate(order):
+            if pos1 >= pos2:
+                continue
+            if type(in_data[g1]) == dict:
+                tmp_stats = {v:{} for v in list(in_data[g1])}
+                for k in tmp_stats:
+                    tmp_stats[k]['p_value'] = wilcoxon(in_data[g1][k], in_data[g2][k], isranksum=False)
+                    tmp_stats[k]['A12'] = a12(in_data[g1][k], in_data[g2][k], pairwise=True)
+            else:
+                assert type(in_data[g1]) == list or type(in_data[g1]) == tuple, "invalid data type"
+                tmp_stats = {}
+                tmp_stats['p_value'] = wilcoxon(in_data[g1][k], in_data[g2][k], isranksum=False)
+                tmp_stats['A12'] = a12(in_data[g1][k], in_data[g2][k], pairwise=True)
+            statstest_obj[str((g1, g2))] = tmp_stats
+            
+    load.common_fs.dumpJSON(statstest_obj, filename, pretty=True)
+    
+    return statstest_obj
+#~ def inner_stattest()
+
 def repetavg_and_proj_proportion_aggregate (proj2repetlists, stopAt=None, agg_median=False):
     projlist = list(proj2repetlists)
     size = len(proj2repetlists[projlist[0]][0])
@@ -340,6 +371,9 @@ def main():
                                                                 "merged_boxplot_all-{}".format(("pred_size" if fixed_size is None else fixed_size)))
             median_file_agg = os.path.join(out_folder, metric.replace('#', 'num').replace(' ', '_') + '-' + \
                                                                 "merged_boxplot_all-{}".format(("pred_size" if fixed_size is None else fixed_size)) + "-median.json")
+            stattest_json_file_agg = os.path.join(out_folder, metric.replace('#', 'num').replace(' ', '_') + '-' + \
+                                                                "merged_boxplot_all-{}".format(("pred_size" if fixed_size is None else fixed_size)) + "-stat_test.json")
+
             order = [PRED_MACHINE_TRANSLATION, PRED_DECISION_TREES, RANDOM]
             data_df = []
             merged_dat = {t: [] for t in order}
@@ -366,6 +400,10 @@ def main():
 
                 median_list = plot.plotBoxes(merged_dat, order, image_file_agg, plot.colors_bw, ylabel=metric, yticks_range=yticks_range)
                 load.common_fs.dumpJSON({order[i]: median_list[i] for i in range(len(median_list))}, median_file_agg, pretty=True)
+                
+                # Stat_test agg
+                stat_test_obj = inner_stattest(merged_dat, stattest_json_file_agg, order=order)
+                
     print("@DONE!")
 #~ def main()
 
