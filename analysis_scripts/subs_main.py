@@ -29,6 +29,7 @@ RANDOM = "RANDOM"
 PRED_MACHINE_TRANSLATION = "MACHINE-TRANSLATION"
 PRED_DECISION_TREES = "DECISION-TREES"
 
+Use_proportion_analysed_mutants = True
 
 def error_exit(err):
     print("@Error: "+err)
@@ -363,11 +364,17 @@ def main():
 
         # Store sizes
         if len(proj2used_size) > 0:
-            subs_load.common_fs.dumpJSON(proj2used_size, \
+            saved_size_obj = {
+                              'USED_SIZES': proj2used_size,
+                              'TOTAL_SIZES': {p: len(am) for p, am in all_mutants.items()}
+                             }
+            subs_load.common_fs.dumpJSON(saved_size_obj, \
                                          os.path.join(out_folder, "used_fixed_size-{}.json".format("pred_size" if fixed_size is None else fixed_size)), pretty=True)
             
         print("# Plotting ...")
-        for metric, data_obj in [('Subsuming MS', sim_res), ('# Mutant Analysed', mutant_analysis_cost_obj), ('# Tests Executed', test_execution_cost_obj)]:
+        for metric, data_obj in [('Subsuming MS', sim_res), \
+                                 ('Proportion of Mutant Analysed' if Use_proportion_analysed_mutants else '# Mutant Analysed', mutant_analysis_cost_obj), \
+                                 ('# Tests Executed', test_execution_cost_obj)]:
             # Plot box plot
             image_file = os.path.join(out_folder, metric.replace('#', 'num').replace(' ', '_') + '-' + \
                                                                 "boxplot_all-{}".format(("pred_size" if fixed_size is None else fixed_size)))
@@ -390,7 +397,7 @@ def main():
                         if metric_val > max_metric_val:
                             max_metric_val = metric_val
             if len(data_df) > 0:
-                if metric == 'Subsuming MS':
+                if metric in ('Subsuming MS', 'Proportion of Mutant Analysed'):
                     yticks_range = plot.np.arange(0,1.01,0.2)
                 else:
                     yticks_range = plot.np.linspace(0, max_metric_val + 1, 10)
@@ -492,7 +499,10 @@ def simulation(num_repet, test_list, mutant_list, machine_translation_mutant_lis
                     else:
                         rem_set -= {m}
                         
-                mutant_analysis_cost[techname].append(analysed_muts_num)
+                if Use_proportion_analysed_mutants:
+                    mutant_analysis_cost[techname].append(analysed_muts_num * 1.0 / len(mutant_list))
+                else:
+                    mutant_analysis_cost[techname].append(analysed_muts_num)
                 test_execution_cost[techname].append(exec_tests_num)
                         
 
