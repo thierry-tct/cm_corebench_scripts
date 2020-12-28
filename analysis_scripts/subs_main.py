@@ -7,6 +7,8 @@ import random
 import glob
 import shutil
 import copy
+import time
+from datetime import timedelta
 
 import tqdm
 import scipy.stats
@@ -278,6 +280,7 @@ def load_data(in_top_dir, model_in_dir, cache=True):
 #~ def load_data()
 
 def main():
+    start_time = time.time()
     #relmut_pred_file = None
     if len(sys.argv) != 3:
         #if len(sys.argv) == 4:
@@ -404,7 +407,7 @@ def main():
                 # Stat_test agg
                 stat_test_obj = inner_stattest(merged_dat, stattest_json_file_agg, order=order)
                 
-    print("@DONE!")
+    print("@DONE (after {}  h:min:sec) !".format(str(timedelta(seconds=(time.time() - start_time)))))
 #~ def main()
 
 def simulation(num_repet, test_list, mutant_list, machine_translation_mutant_list,
