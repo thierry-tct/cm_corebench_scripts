@@ -82,8 +82,8 @@ def inner_stattest(in_data, filename, order=None):
             else:
                 assert type(in_data[g1]) == list or type(in_data[g1]) == tuple, "invalid data type"
                 tmp_stats = {}
-                tmp_stats['p_value'] = wilcoxon(in_data[g1][k], in_data[g2][k], isranksum=False)
-                tmp_stats['A12'] = a12(in_data[g1][k], in_data[g2][k], pairwise=True)
+                tmp_stats['p_value'] = wilcoxon(in_data[g1], in_data[g2], isranksum=False)
+                tmp_stats['A12'] = a12(in_data[g1], in_data[g2], pairwise=True)
             statstest_obj[str((g1, g2))] = tmp_stats
             
     subs_load.common_fs.dumpJSON(statstest_obj, filename, pretty=True)
