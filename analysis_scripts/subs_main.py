@@ -373,7 +373,7 @@ def main():
             size_prop = []
             for proj in saved_size_obj['USED_SIZES']:
                 size_prop.append(saved_size_obj['USED_SIZES'][proj] * 1.0 / saved_size_obj['TOTAL_SIZES'][proj])
-            plotBoxesHorizontal({'': size_prop}, [''], size_file_prefix, ['white'], ylabel="Predicted Mutants Proportion" , yticks_range=plot.np.arange(0,1.01,0.2))
+            plot.plotBoxesHorizontal({'': size_prop}, [''], size_file_prefix, ['white'], ylabel="Predicted Mutants Proportion" , yticks_range=plot.np.arange(0,1.01,0.2))
             
         print("# Plotting ...")
         for metric, data_obj in [('Subsuming MS', sim_res), \
