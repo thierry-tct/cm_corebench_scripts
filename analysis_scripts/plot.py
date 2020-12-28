@@ -188,16 +188,24 @@ def plotBoxesHorizontal(plotobj, order, imagefile, colors_bw, ylabel="APFD", yti
 
     if vertical:
         plt.ylabel(ylabel, fontsize=fontsize)
+        if len(plotobjList) > 2:
+            plt.xticks(fontsize=fontsize, rotation=30, ha='right')
+        else:
+            plt.xticks(fontsize=fontsize) # do not rotate x ticks
+        if yticks_range is not None:
+            plt.yticks(yticks_range, fontsize=fontsize)
+        else:
+            plt.yticks(fontsize=fontsize)
     else:
         plt.xlabel(ylabel, fontsize=fontsize)
-    if len(plotobjList) > 2:
-        plt.xticks(fontsize=fontsize, rotation=30, ha='right')
-    else:
-        plt.xticks(fontsize=fontsize) # do not rotate x ticks
-    if yticks_range is not None:
-        plt.yticks(yticks_range, fontsize=fontsize)
-    else:
-        plt.yticks(fontsize=fontsize)
+        if yticks_range is not None:
+            plt.xticks(yticks_range, fontsize=fontsize)
+        else:
+            plt.xticks(fontsize=fontsize)
+        if len(plotobjList) > 2:
+            plt.yticks(fontsize=fontsize, rotation=30, ha='right')
+        else:
+            plt.yticks(fontsize=fontsize) # do not rotate x ticks
     plt.tight_layout()
     ybot, ytop = plt.gca().get_ylim()
     ypad = (ytop - ybot) / 50
