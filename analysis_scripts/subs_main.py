@@ -368,8 +368,12 @@ def main():
                               'USED_SIZES': proj2used_size,
                               'TOTAL_SIZES': {p: len(am) for p, am in all_mutants.items()}
                              }
-            subs_load.common_fs.dumpJSON(saved_size_obj, \
-                                         os.path.join(out_folder, "used_fixed_size-{}.json".format("pred_size" if fixed_size is None else fixed_size)), pretty=True)
+            size_file_prefix = os.path.join(out_folder, "used_fixed_size-{}".format("pred_size" if fixed_size is None else fixed_size))
+            subs_load.common_fs.dumpJSON(saved_size_obj, size_file_prefix+'.json' , pretty=True)
+            size_prop = []
+            for proj in saved_size_obj['USED_SIZES']:
+                size_prop.append(saved_size_obj['USED_SIZES'][proj] * 1.0 / saved_size_obj['TOTAL_SIZES'][proj])
+            plotBoxesHorizontal({'': size_prop}, [''], size_file_prefix, ['white'], ylabel="Predicted Mutants Proportion" , yticks_range=plot.np.arange(0,1.01,0.2))
             
         print("# Plotting ...")
         for metric, data_obj in [('Subsuming MS', sim_res), \
