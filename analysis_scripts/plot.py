@@ -163,3 +163,48 @@ def plotBoxes(plotobj, order, imagefile, colors_bw, ylabel="APFD", yticks_range=
     plt.close('all')
     return medianValues
 #~ def plotBoxes()
+
+
+def plotBoxesHorizontal(plotobj, order, imagefile, colors_bw, ylabel="APFD", yticks_range=range(0,101,20), fontsize=26, title=None):
+    plt.figure(figsize=(16, 2))
+    plt.gcf().subplots_adjust(bottom=0.27)
+    #plt.style.use(u'ggplot')
+    sns.set_style("ticks")
+    #fontsize = 26
+    vertical = False
+    plotobjList = [plotobj[t] for t in order]
+    bp = plt.boxplot(plotobjList, labels=order, widths=0.75, patch_artist=True, vert=vertical)
+    medianValues = []
+    for ind,box in enumerate(bp['boxes']):
+        box.set(color='black')
+        box.set(facecolor = colors_bw[ind])
+    for ind,med in enumerate(bp['medians']):
+        med.set(color='black', lw=4)
+        medianValues.append(med.get_xydata()[1][1])
+    for ind,wh in enumerate(bp['whiskers']):
+        wh.set(color='black')
+    for ind,wh in enumerate(bp['fliers']):
+        wh.set(mew=2)
+
+    if vertical:
+        plt.ylabel(ylabel, fontsize=fontsize)
+    else:
+        plt.xlabel(ylabel, fontsize=fontsize)
+    if len(plotobjList) > 2:
+        plt.xticks(fontsize=fontsize, rotation=30, ha='right')
+    else:
+        plt.xticks(fontsize=fontsize) # do not rotate x ticks
+    if yticks_range is not None:
+        plt.yticks(yticks_range, fontsize=fontsize)
+    else:
+        plt.yticks(fontsize=fontsize)
+    plt.tight_layout()
+    ybot, ytop = plt.gca().get_ylim()
+    ypad = (ytop - ybot) / 50
+    #ypad = 2
+    plt.gca().set_ylim(ybot - ypad, ytop + ypad)
+    #sns_plot.set_title('APFD - '+allkonly)
+    plt.savefig(imagefile+".pdf", format='pdf')
+    plt.close('all')
+    return medianValues
+#~ def plotBoxesHorizontal()
