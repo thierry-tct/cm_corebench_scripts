@@ -80,7 +80,7 @@ def inner_stattest(in_data, filename, order=None):
                 tmp_stats['A12'] = a12(in_data[g1][k], in_data[g2][k], pairwise=True)
             statstest_obj[str((g1, g2))] = tmp_stats
             
-    load.common_fs.dumpJSON(statstest_obj, filename, pretty=True)
+    subs_load.common_fs.dumpJSON(statstest_obj, filename, pretty=True)
     
     return statstest_obj
 #~ def inner_stattest()
@@ -399,7 +399,7 @@ def main():
                 plot.plt.close('all')
 
                 median_list = plot.plotBoxes(merged_dat, order, image_file_agg, plot.colors_bw, ylabel=metric, yticks_range=yticks_range)
-                load.common_fs.dumpJSON({order[i]: median_list[i] for i in range(len(median_list))}, median_file_agg, pretty=True)
+                subs_load.common_fs.dumpJSON({order[i]: median_list[i] for i in range(len(median_list))}, median_file_agg, pretty=True)
                 
                 # Stat_test agg
                 stat_test_obj = inner_stattest(merged_dat, stattest_json_file_agg, order=order)
