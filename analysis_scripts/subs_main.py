@@ -21,7 +21,10 @@ import seaborn as sns
 import subs_load
 import plot
  
-STOP_AT_N_MUTANTS = 100 # None
+#STOP_AT_N_MUTANTS = 100 # None
+
+NUM_REPETITIONS = 1000 #1000
+
 RANDOM = "RANDOM"
 PRED_MACHINE_TRANSLATION = "MACHINE-TRANSLATION"
 PRED_DECISION_TREES = "DECISION-TREES"
@@ -320,8 +323,6 @@ def main():
     pred_clust_cov_file = os.path.join(out_folder, "Pred_machine_translation-subs_cluster_coverage.json")
     subs_load.common_fs.dumpJSON(pred_clust_cov, pred_clust_cov_file, pretty=True)
     
-    num_repet = 10000 #1000
-    
     # Simulation
     print ("# Running Simulations ...")
     for fixed_size in (None,):# 5, 10, 20, 30, "subs_cluster_size"):
@@ -351,7 +352,7 @@ def main():
             sim_res[proj][RANDOM], sim_res[proj][PRED_MACHINE_TRANSLATION], \
                                 sim_res[proj][PRED_DECISION_TREES], \
                                 mutant_analysis_cost_obj[proj], \
-                                test_execution_cost_obj[proj] = simulation(num_repet, all_tests[proj], \
+                                test_execution_cost_obj[proj] = simulation(NUM_REPETITIONS, all_tests[proj], \
                                                                              all_mutants[proj], \
                                                                              machine_translation_mutants[proj], \
                                                                              decision_trees_mutants[proj], \
