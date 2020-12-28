@@ -366,7 +366,7 @@ def main():
         if len(proj2used_size) > 0:
             saved_size_obj = {
                               'PREDICTED_SIZES': proj2used_size,
-                              'TOTAL_SIZES': {p: len(am) for p, am in all_mutants.items()}
+                              'TOTAL_SIZES': {p: len(am) for p, am in all_mutants.items()},
                               'SUBSUMING_SIZES': {p: len(sm) for p, sm in mutant_to_subs_cluster.items()}
                              }
             size_file_prefix = os.path.join(out_folder, "used_fixed_size-{}".format("pred_size" if fixed_size is None else fixed_size))
