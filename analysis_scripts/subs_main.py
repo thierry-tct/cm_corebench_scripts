@@ -526,6 +526,49 @@ def simulation(num_repet, test_list, mutant_list, machine_translation_mutant_lis
     return rand_sMS, machine_translation_sMS, decision_trees_sMS, mutant_analysis_cost, test_execution_cost
 #~ def simulation()
     
+def additional_simulation (num_repet, test_list, mutant_list, 
+                              decision_trees_mutant_dict,
+                              tests_to_killed_mutants, tests_to_killed_subs_cluster, 
+                              mutants_to_killingtests, machine_translation_sMS2size):
+    sMS2selsize = {RANDOM: {}, PRED_DECISION_TREES: {}}
+    for fixed_size in range (1, len(mutant_list) + 1):
+        rand_sMS, machine_translation_sMS, decision_trees_sMS, \
+                            mutant_analysis_cost, test_execution_cost = simulation (10, 
+                                                                                        test_list, mutant_list, 
+                                                                                        decision_trees_mutant_dict,
+                                                                                        tests_to_killed_mutants, tests_to_killed_subs_cluster, 
+                                                                                        mutants_to_killingtests, fixed_size=fixed_size)
+        for sMS in rand_sMS:
+            if sMS not in sMS2selsize[RANDOM][sMS]:
+                sMS2selsize[RANDOM][sMS] = set()
+            sMS2selsize[RANDOM][sMS].add(fixed_size)
+        for sMS in decision_trees_sMS:
+            if sMS not in sMS2selsize[PRED_DECISION_TREES][sMS]:
+                sMS2selsize[PRED_DECISION_TREES][sMS] = set()
+            sMS2selsize[PRED_DECISION_TREES][sMS].add(fixed_size)
+            
+    sorted_keys_sMS = {RANDOM: sorted(list(sMS2selsize[RANDOM])), PRED_DECISION_TREES: sorted(list(sMS2selsize[PRED_DECISION_TREES]))}
+    
+    def get_other_sizes (in_sMS):
+        pos = max(bisect.bisect_right(sorted_keys_sMS[RANDOM], in_sMS) - 1, 0)
+        sMS = sorted_keys_sMS[RANDOM][pos]
+        rand_size = random.choice(sMS2selsize[RANDOM][sMS])
+        pos = max(bisect.bisect_right(sorted_keys_sMS[PRED_DECISION_TREES], in_sMS) - 1, 0)
+        sMS = sorted_keys_sMS[PRED_DECISION_TREES][pos]
+        dt_size = random.choice(sMS2selsize[PRED_DECISION_TREES][sMS])
+        return rand_size, dt_size
+    #~def get_other_sizes ()
+    
+    sizes = {RANDOM: [], PRED_DECISION_TREES: [], PRED_MACHINE_TRANSLATION: []}
+    for mt_sMS, mt_size in machine_translation_sMS2size.items():
+        rand_size, dt_size = get_other_sizes (mt_sMS)
+        sizes[PRED_MACHINE_TRANSLATION].append(mt_size)
+        sizes[PRED_DECISION_TREES].append(dt_size)
+        sizes[RANDOM].append(rand_size)
+            
+    return sizes
+#~ def additional_simulation ()
+    
 def stat_test (left_FR, left_rMS, left_name, right_FR, right_rMS, right_name):
     res = {}
     left_fr_list = {} #i: [] for i in range(1, 101)} 
