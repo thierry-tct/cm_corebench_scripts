@@ -9,6 +9,7 @@ import shutil
 import copy
 import time
 from datetime import timedelta
+import bisect
 
 import tqdm
 import scipy.stats
@@ -564,6 +565,10 @@ def additional_simulation (num_sub_repet, test_list, mutant_list,
             if sMS not in sMS2selsize[PRED_DECISION_TREES]:
                 sMS2selsize[PRED_DECISION_TREES][sMS] = set()
             sMS2selsize[PRED_DECISION_TREES][sMS].add(fixed_size)
+            
+    for tech in sMS2selsize:
+        for sMS in sMS2selsize[tech]:
+            sMS2selsize[tech][sMS] = list (sMS2selsize[tech][sMS])
             
     sorted_keys_sMS = {RANDOM: sorted(list(sMS2selsize[RANDOM])), PRED_DECISION_TREES: sorted(list(sMS2selsize[PRED_DECISION_TREES]))}
     
