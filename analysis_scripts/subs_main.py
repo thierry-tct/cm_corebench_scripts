@@ -329,6 +329,7 @@ def main():
     for fixed_size in (None,):# 5, 10, 20, 30, "subs_cluster_size"):
         proj2used_size = {}
         sim_res = {}
+        other_sim_res = {}
         mutant_analysis_cost_obj = {}
         test_execution_cost_obj = {}
         tq_data = tqdm.tqdm(list(all_tests))
@@ -349,7 +350,7 @@ def main():
                 # not enough data to check
                 continue
                 
-            sim_res[proj] = {RANDOM: None, PRED_MACHINE_TRANSLATION: None}
+            sim_res[proj] = {RANDOM: None, PRED_MACHINE_TRANSLATION: None, PRED_DECISION_TREES: None}
             sim_res[proj][RANDOM], sim_res[proj][PRED_MACHINE_TRANSLATION], \
                                 sim_res[proj][PRED_DECISION_TREES], \
                                 mutant_analysis_cost_obj[proj], \
@@ -361,6 +362,16 @@ def main():
                                                                              tests_to_killed_subs_cluster[proj], \
                                                                              mutants_to_killingtests[proj], \
                                                                              fixed_size=used_fixed_size)
+            
+            print ("## Doing additional sim ...")
+            machine_translation_sMS2size = {sMS: used_fixed_size for sMS in sim_res[proj][PRED_MACHINE_TRANSLATION]}
+            other_sim_res[proj] = additional_simulation (10, all_tests[proj], \
+                                                                             all_mutants[proj], \
+                                                                             decision_trees_mutants[proj], \
+                                                                             tests_to_killed_mutants[proj], \
+                                                                             tests_to_killed_subs_cluster[proj], \
+                                                                             mutants_to_killingtests[proj], \
+                                                                             machine_translation_sMS2size)
 
         # Store sizes
         if len(proj2used_size) > 0:
@@ -380,7 +391,8 @@ def main():
         print("# Plotting ...")
         for metric, data_obj in [('Subsuming MS', sim_res), \
                                  ('Proportion of Mutant Analysed' if Use_proportion_analysed_mutants else '# Mutant Analysed', mutant_analysis_cost_obj), \
-                                 ('# Tests Executed', test_execution_cost_obj)]:
+                                 ('# Tests Executed', test_execution_cost_obj),
+                                 ('Mutant Size for Same Subsuming MS', other_sim_res)]:
             # Plot box plot
             image_file = os.path.join(out_folder, metric.replace('#', 'num').replace(' ', '_') + '-' + \
                                                                 "boxplot_all-{}".format(("pred_size" if fixed_size is None else fixed_size)))
@@ -431,6 +443,7 @@ def simulation(num_repet, test_list, mutant_list, machine_translation_mutant_lis
     ordered_tests_mode = False
     
     if fixed_size is None:
+        assert machine_translation_mutant_list is not None, "Must have MT here"
         selection_size = len(machine_translation_mutant_list)
     else:
         selection_size = fixed_size
@@ -444,7 +457,7 @@ def simulation(num_repet, test_list, mutant_list, machine_translation_mutant_lis
     for repet_id in repet_bar:
         # randomly sample
         random_M = set(random.sample(mutant_list, selection_size))
-        machine_translation_M = set(random.sample(machine_translation_mutant_list, selection_size))
+        machine_translation_M = set(random.sample(machine_translation_mutant_list, selection_size)) if machine_translation_mutant_list is not None else None
         decision_trees_M = set(sorted(
                                         random.sample(mutant_list, len(mutant_list)), 
                                         reverse=True, 
@@ -452,7 +465,8 @@ def simulation(num_repet, test_list, mutant_list, machine_translation_mutant_lis
                                     ) [:selection_size])
 
         random_test_suites.append([])
-        machine_translation_test_suites.append([])
+        if machine_translation_M is not None:
+            machine_translation_test_suites.append([])
         decision_trees_test_suites.append([])
         
         if ordered_tests_mode:
@@ -461,21 +475,23 @@ def simulation(num_repet, test_list, mutant_list, machine_translation_mutant_lis
             for t in test_order:
                 # get killed mutants
                 rand_kill_mut = set(tests_to_killed_mutants[t]) & random_M
-                machine_translation_kill_mut = set(tests_to_killed_mutants[t]) & machine_translation_M
+                machine_translation_kill_mut = set(tests_to_killed_mutants[t]) & machine_translation_M if machine_translation_M is not None else None
                 decision_trees_kill_mut = set(tests_to_killed_mutants[t]) & decision_trees_M
                 if len(rand_kill_mut) > 0:
                     random_test_suites[-1].append(t)
                     random_M -= rand_kill_mut
-                if len(machine_translation_kill_mut) > 0:
+                if machine_translation_M is not None and len(machine_translation_kill_mut) > 0:
                     machine_translation_test_suites[-1].append(t)
                     machine_translation_M -= machine_translation_kill_mut
                 if len(decision_trees_kill_mut) > 0:
                     decision_trees_test_suites[-1].append(t)
                     decision_trees_M -= decision_trees_kill_mut
         else:
-            for techname, rem_set, TS_list in [(RANDOM, random_M, random_test_suites), \
-                                                      (PRED_MACHINE_TRANSLATION, machine_translation_M, machine_translation_test_suites), \
-                                                      (PRED_DECISION_TREES, decision_trees_M, decision_trees_test_suites)]:
+            tasks = [(RANDOM, random_M, random_test_suites), \
+                                                      (PRED_DECISION_TREES, decision_trees_M, decision_trees_test_suites)]
+            if machine_translation_M is not None:
+                tasks.append((PRED_MACHINE_TRANSLATION, machine_translation_M, machine_translation_test_suites))
+            for techname, rem_set, TS_list in tasks:
                 analysed_muts_num = 0
                 exec_tests_num = 0
                 while len(rem_set) > 0:
@@ -526,15 +542,16 @@ def simulation(num_repet, test_list, mutant_list, machine_translation_mutant_lis
     return rand_sMS, machine_translation_sMS, decision_trees_sMS, mutant_analysis_cost, test_execution_cost
 #~ def simulation()
     
-def additional_simulation (num_repet, test_list, mutant_list, 
+def additional_simulation (num_sub_repet, test_list, mutant_list, 
                               decision_trees_mutant_dict,
                               tests_to_killed_mutants, tests_to_killed_subs_cluster, 
                               mutants_to_killingtests, machine_translation_sMS2size):
+    
     sMS2selsize = {RANDOM: {}, PRED_DECISION_TREES: {}}
     for fixed_size in range (1, len(mutant_list) + 1):
         rand_sMS, machine_translation_sMS, decision_trees_sMS, \
-                            mutant_analysis_cost, test_execution_cost = simulation (10, 
-                                                                                        test_list, mutant_list, 
+                            mutant_analysis_cost, test_execution_cost = simulation (num_sub_repet, 
+                                                                                        test_list, mutant_list, None,
                                                                                         decision_trees_mutant_dict,
                                                                                         tests_to_killed_mutants, tests_to_killed_subs_cluster, 
                                                                                         mutants_to_killingtests, fixed_size=fixed_size)
