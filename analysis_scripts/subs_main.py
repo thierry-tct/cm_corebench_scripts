@@ -556,11 +556,11 @@ def additional_simulation (num_sub_repet, test_list, mutant_list,
                                                                                         tests_to_killed_mutants, tests_to_killed_subs_cluster, 
                                                                                         mutants_to_killingtests, fixed_size=fixed_size)
         for sMS in rand_sMS:
-            if sMS not in sMS2selsize[RANDOM][sMS]:
+            if sMS not in sMS2selsize[RANDOM]:
                 sMS2selsize[RANDOM][sMS] = set()
             sMS2selsize[RANDOM][sMS].add(fixed_size)
         for sMS in decision_trees_sMS:
-            if sMS not in sMS2selsize[PRED_DECISION_TREES][sMS]:
+            if sMS not in sMS2selsize[PRED_DECISION_TREES]:
                 sMS2selsize[PRED_DECISION_TREES][sMS] = set()
             sMS2selsize[PRED_DECISION_TREES][sMS].add(fixed_size)
             
