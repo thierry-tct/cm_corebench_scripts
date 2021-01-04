@@ -548,7 +548,8 @@ def additional_simulation (num_sub_repet, test_list, mutant_list,
                               mutants_to_killingtests, machine_translation_sMS2size):
     
     sMS2selsize = {RANDOM: {}, PRED_DECISION_TREES: {}}
-    for fixed_size in range (1, len(mutant_list) + 1):
+    multi_sizes_bar = tqdm.tqdm(range (1, len(mutant_list) + 1), desc='Multiple Sizes', leave=False)
+    for fixed_size in multi_sizes_bar:
         rand_sMS, machine_translation_sMS, decision_trees_sMS, \
                             mutant_analysis_cost, test_execution_cost = simulation (num_sub_repet, 
                                                                                         test_list, mutant_list, None,
