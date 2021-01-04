@@ -26,6 +26,8 @@ import plot
 
 NUM_REPETITIONS = 1000 #1000
 
+SUB_REPET_NUM = 1
+
 RANDOM = "RANDOM"
 PRED_MACHINE_TRANSLATION = "MACHINE-TRANSLATION"
 PRED_DECISION_TREES = "DECISION-TREES"
@@ -366,7 +368,7 @@ def main():
             
             print ("## Doing additional sim ...")
             machine_translation_sMS2size = {sMS: used_fixed_size for sMS in sim_res[proj][PRED_MACHINE_TRANSLATION]}
-            other_sim_res[proj] = additional_simulation (10, all_tests[proj], \
+            other_sim_res[proj] = additional_simulation (SUB_REPET_NUM, all_tests[proj], \
                                                                              all_mutants[proj], \
                                                                              decision_trees_mutants[proj], \
                                                                              tests_to_killed_mutants[proj], \
