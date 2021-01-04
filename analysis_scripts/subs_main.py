@@ -546,7 +546,8 @@ def simulation(num_repet, test_list, mutant_list, machine_translation_mutant_lis
 def additional_simulation (num_sub_repet, test_list, mutant_list, 
                               decision_trees_mutant_dict,
                               tests_to_killed_mutants, tests_to_killed_subs_cluster, 
-                              mutants_to_killingtests, machine_translation_sMS2size):
+                              mutants_to_killingtests, machine_translation_sMS2size,
+                              use_raw_number=False):
     
     sMS2selsize = {RANDOM: {}, PRED_DECISION_TREES: {}}
     multi_sizes_bar = tqdm.tqdm(range (1, len(mutant_list) + 1), desc='Multiple Sizes', leave=False)
@@ -585,9 +586,14 @@ def additional_simulation (num_sub_repet, test_list, mutant_list,
     sizes = {RANDOM: [], PRED_DECISION_TREES: [], PRED_MACHINE_TRANSLATION: []}
     for mt_sMS, mt_size in machine_translation_sMS2size.items():
         rand_size, dt_size = get_other_sizes (mt_sMS)
-        sizes[PRED_MACHINE_TRANSLATION].append(mt_size)
-        sizes[PRED_DECISION_TREES].append(dt_size)
-        sizes[RANDOM].append(rand_size)
+        if use_raw_number:
+            sizes[PRED_MACHINE_TRANSLATION].append(mt_size)
+            sizes[PRED_DECISION_TREES].append(dt_size)
+            sizes[RANDOM].append(rand_size)
+        else:
+            sizes[PRED_MACHINE_TRANSLATION].append(mt_size * 1.0 / len(mutant_list))
+            sizes[PRED_DECISION_TREES].append(dt_size * 1.0 / len(mutant_list))
+            sizes[RANDOM].append(rand_size * 1.0 / len(mutant_list))
             
     return sizes
 #~ def additional_simulation ()
