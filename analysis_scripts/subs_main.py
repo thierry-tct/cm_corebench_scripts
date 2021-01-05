@@ -423,7 +423,7 @@ def main():
                         if metric_val > max_metric_val:
                             max_metric_val = metric_val
             if len(data_df) > 0:
-                if metric in ('Subsuming MS', 'Proportion of Mutant Analysed'):
+                if metric in ('Subsuming MS', 'Proportion of Mutant Analysed', 'Mutant Size for Same Subsuming MS'):
                     yticks_range = plot.np.arange(0,1.01,0.2)
                 else:
                     yticks_range = plot.np.linspace(0, max_metric_val + 1, 10)
