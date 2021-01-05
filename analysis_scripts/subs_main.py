@@ -2,7 +2,7 @@
 
 import os
 import sys
-import multiprocessing
+from multiprocessing import Pool
 import random
 import glob
 import shutil
@@ -374,7 +374,8 @@ def main():
                                                                              tests_to_killed_mutants[proj], \
                                                                              tests_to_killed_subs_cluster[proj], \
                                                                              mutants_to_killingtests[proj], \
-                                                                             machine_translation_sMS2size)
+                                                                             machine_translation_sMS2size, \
+                                                                            parallel_count=16)
 
         # Store sizes
         if len(proj2used_size) > 0:
@@ -545,21 +546,14 @@ def simulation(num_repet, test_list, mutant_list, machine_translation_mutant_lis
     return rand_sMS, machine_translation_sMS, decision_trees_sMS, mutant_analysis_cost, test_execution_cost
 #~ def simulation()
     
-def additional_simulation (num_sub_repet, test_list, mutant_list, 
-                              decision_trees_mutant_dict,
-                              tests_to_killed_mutants, tests_to_killed_subs_cluster, 
-                              mutants_to_killingtests, machine_translation_sMS2size,
-                              use_raw_number=False):
-    
+def additional_sub_parallel (in_data_valuerange_args_kwargs):
     sMS2selsize = {RANDOM: {}, PRED_DECISION_TREES: {}}
-    multi_sizes_bar = tqdm.tqdm(range (1, len(mutant_list) + 1), desc='Multiple Sizes', leave=False)
+    multi_sizes_bar = tqdm.tqdm(in_data_valuerange_args_kwargs[0], desc='Multiple Sizes', leave=False)
+    args = in_data_valuerange_args_kwargs[1]
+    kwargs = in_data_valuerange_args_kwargs[2]
     for fixed_size in multi_sizes_bar:
         rand_sMS, machine_translation_sMS, decision_trees_sMS, \
-                            mutant_analysis_cost, test_execution_cost = simulation (num_sub_repet, 
-                                                                                        test_list, mutant_list, None,
-                                                                                        decision_trees_mutant_dict,
-                                                                                        tests_to_killed_mutants, tests_to_killed_subs_cluster, 
-                                                                                        mutants_to_killingtests, fixed_size=fixed_size)
+                            mutant_analysis_cost, test_execution_cost = simulation (*args, **kwargs)
         for sMS in rand_sMS:
             if sMS not in sMS2selsize[RANDOM]:
                 sMS2selsize[RANDOM][sMS] = set()
@@ -568,6 +562,38 @@ def additional_simulation (num_sub_repet, test_list, mutant_list,
             if sMS not in sMS2selsize[PRED_DECISION_TREES]:
                 sMS2selsize[PRED_DECISION_TREES][sMS] = set()
             sMS2selsize[PRED_DECISION_TREES][sMS].add(fixed_size)
+            
+    return sMS2selsize
+#~ def additional_sub_parallel()
+
+def additional_simulation (num_sub_repet, test_list, mutant_list, 
+                              decision_trees_mutant_dict,
+                              tests_to_killed_mutants, tests_to_killed_subs_cluster, 
+                              mutants_to_killingtests, machine_translation_sMS2size,
+                              use_raw_number=False, parallel_count=1):
+    
+    assert parallel_count > 0, "invalid parallel_count"
+    
+    args = [num_sub_repet, test_list, mutant_list, None, decision_trees_mutant_dict,
+                           tests_to_killed_mutants, tests_to_killed_subs_cluster, mutants_to_killingtests]
+    kwargs = {"fixed_size": fixed_size}
+    
+    list_in_data_tqdmrange_args_kwargs = []
+    for para_ind in range(parallel_count):
+        tqdmrange = range (1 + para_ind, len(mutant_list) + 1, parallel_count)
+    list_in_data_tqdmrange_args_kwargs.append((tqdmrange, args, kwargs))
+    
+    with Pool(parallel_count) as p:
+        map_list = p.map(additional_sub_parallel, list_in_data_tqdmrange_args_kwargs)
+        
+    # Merge maps
+    sMS2selsize = {RANDOM: {}, PRED_DECISION_TREES: {}}
+    for sub_map in map_list:
+        for tech, tdat in sub_map.items():
+            for sMS, ss in tdat.items():
+                if sMS not in sMS2selsize[tech]:
+                    sMS2selsize[tech][sMS] = set()
+                sMS2selsize[tech][sMS] |= ss
             
     for tech in sMS2selsize:
         for sMS in sMS2selsize[tech]:
