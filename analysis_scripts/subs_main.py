@@ -550,8 +550,9 @@ def additional_sub_parallel (in_data_valuerange_args_kwargs):
     sMS2selsize = {RANDOM: {}, PRED_DECISION_TREES: {}}
     multi_sizes_bar = tqdm.tqdm(in_data_valuerange_args_kwargs[0], desc='Multiple Sizes', leave=False)
     args = in_data_valuerange_args_kwargs[1]
-    kwargs = in_data_valuerange_args_kwargs[2]
+    kwargs = dict(in_data_valuerange_args_kwargs[2]) # make a new copy
     for fixed_size in multi_sizes_bar:
+        kwargs['fixed_size'] = fixed_size
         rand_sMS, machine_translation_sMS, decision_trees_sMS, \
                             mutant_analysis_cost, test_execution_cost = simulation (*args, **kwargs)
         for sMS in rand_sMS:
@@ -576,7 +577,7 @@ def additional_simulation (num_sub_repet, test_list, mutant_list,
     
     args = [num_sub_repet, test_list, mutant_list, None, decision_trees_mutant_dict,
                            tests_to_killed_mutants, tests_to_killed_subs_cluster, mutants_to_killingtests]
-    kwargs = {"fixed_size": fixed_size}
+    kwargs = {}
     
     list_in_data_tqdmrange_args_kwargs = []
     for para_ind in range(parallel_count):
