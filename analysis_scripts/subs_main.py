@@ -602,11 +602,11 @@ def additional_sub_parallel (in_data_valuerange_args_kwargs):
                 sMS2analysed[tech][sMS].append(mutant_analysis_cost[tech][pos])
                 sMS2testexec[tech][sMS].append(test_execution_cost[tech][pos])
                 if mutant_analysis_cost[tech][pos] not in analysed2sMS:
-                    analysed2sMS[mutant_analysis_cost[tech][pos]] = []
-                analysed2sMS[mutant_analysis_cost[tech][pos]].append(sMS)
+                    analysed2sMS[tech][mutant_analysis_cost[tech][pos]] = []
+                analysed2sMS[tech][mutant_analysis_cost[tech][pos]].append(sMS)
                 if test_execution_cost[tech][pos] not in testexec2sMS:
-                    testexec2sMS[test_execution_cost[tech][pos]] = []
-                testexec2sMS[test_execution_cost[tech][pos]].append(sMS)
+                    testexec2sMS[tech][test_execution_cost[tech][pos]] = []
+                testexec2sMS[tech][test_execution_cost[tech][pos]].append(sMS)
             
     return sMS2selsize, sMS2analysed, sMS2testexec, analysed2sMS, testexec2sMS
 #~ def additional_sub_parallel()
