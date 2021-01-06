@@ -333,6 +333,10 @@ def main():
         proj2used_size = {}
         sim_res = {}
         other_sim_res = {}
+        anal_sim_res = {}
+        anal_other_sim_res = {}
+        testexec_sim_res = {}
+        test_exec_other_sim_res = {}
         mutant_analysis_cost_obj = {}
         test_execution_cost_obj = {}
         tq_data = tqdm.tqdm(list(all_tests))
@@ -368,18 +372,39 @@ def main():
             
             print ("## Doing additional sim ...")
             machine_translation_sMS2size = {}
-            for sMS in sim_res[proj][PRED_MACHINE_TRANSLATION]:
+            mt_sMS2analysed = {}
+            mt_sMS2testexec = {}
+            mt_analysed2sMS = {}
+            mt_testexec2sMS = {}
+            for pos,sMS in enumerate(sim_res[proj][PRED_MACHINE_TRANSLATION]):
+                anal_here = mutant_analysis_cost_obj[proj][PRED_MACHINE_TRANSLATION][pos]
+                testexec_here = test_execution_cost_obj[proj][PRED_MACHINE_TRANSLATION][pos]
                 if sMS not in machine_translation_sMS2size:
                     machine_translation_sMS2size[sMS] = []
+                    mt_sMS2analysed[sMS] = []
+                    mt_sMS2testexec[sMS] = []
+                if anal_here not in mt_analysed2sMS:
+                    mt_analysed2sMS[anal_here] = []
+                if testexec_here not in mt_testexec2sMS:
+                    mt_testexec2sMS[testexec_here] = []
                 machine_translation_sMS2size[sMS].append(used_fixed_size)
-            other_sim_res[proj] = additional_simulation (SUB_REPET_NUM, all_tests[proj], \
-                                                                             all_mutants[proj], \
-                                                                             decision_trees_mutants[proj], \
-                                                                             tests_to_killed_mutants[proj], \
-                                                                             tests_to_killed_subs_cluster[proj], \
-                                                                             mutants_to_killingtests[proj], \
-                                                                             machine_translation_sMS2size, \
-                                                                            parallel_count=16)
+                mt_sMS2analysed[sMS].append(anal_here)
+                mt_sMS2testexec[sMS].append(testexec_here)
+                mt_analysed2sMS[anal_here].append(sMS)
+                mt_testexec2sMS[testexec_here].append(sMS)
+            other_sim_res[proj], anal_sim_res[proj], anal_other_sim_res[proj], \
+                       testexec_sim_res[proj], test_exec_other_sim_res[proj] = additional_simulation (SUB_REPET_NUM, all_tests[proj], \
+                                                                                                        all_mutants[proj], \
+                                                                                                        decision_trees_mutants[proj], \
+                                                                                                        tests_to_killed_mutants[proj], \
+                                                                                                        tests_to_killed_subs_cluster[proj], \
+                                                                                                        mutants_to_killingtests[proj], \
+                                                                                                        machine_translation_sMS2size, \
+                                                                                                        mt_sMS2analysed=mt_sMS2analysed, \
+                                                                                                        mt_sMS2testexec=mt_sMS2testexec, \
+                                                                                                        mt_analysed2sMS=mt_analysed2sMS, \
+                                                                                                        mt_testexec2sMS=mt_testexec2sMS, \
+                                                                                                        parallel_count=16)
 
         # Store sizes
         if len(proj2used_size) > 0:
@@ -575,6 +600,10 @@ def additional_simulation (num_sub_repet, test_list, mutant_list,
                               decision_trees_mutant_dict,
                               tests_to_killed_mutants, tests_to_killed_subs_cluster, 
                               mutants_to_killingtests, machine_translation_sMS2size,
+                              mt_sMS2analysed=None, 
+                              mt_sMS2testexec=None, \
+                              mt_analysed2sMS=None, \
+                              mt_testexec2sMS=None, \
                               use_raw_number=False, parallel_count=1):
     
     assert parallel_count > 0, "invalid parallel_count"
@@ -620,6 +649,10 @@ def additional_simulation (num_sub_repet, test_list, mutant_list,
     #~def get_other_sizes ()
     
     sizes = {RANDOM: [], PRED_DECISION_TREES: [], PRED_MACHINE_TRANSLATION: []}
+    analysed_sMS = {RANDOM: [], PRED_DECISION_TREES: [], PRED_MACHINE_TRANSLATION: []}
+    analysed = {RANDOM: [], PRED_DECISION_TREES: [], PRED_MACHINE_TRANSLATION: []}
+    testexec_sMS = {RANDOM: [], PRED_DECISION_TREES: [], PRED_MACHINE_TRANSLATION: []}
+    testexec = {RANDOM: [], PRED_DECISION_TREES: [], PRED_MACHINE_TRANSLATION: []}
     for mt_sMS, mt_size_list in machine_translation_sMS2size.items():
         rand_size, dt_size, mt_size = get_other_sizes (mt_sMS, mt_size_list)
         if use_raw_number:
@@ -631,7 +664,7 @@ def additional_simulation (num_sub_repet, test_list, mutant_list,
             sizes[PRED_DECISION_TREES] += [s * 1.0 / len(mutant_list) for s in dt_size]
             sizes[RANDOM] += [s * 1.0 / len(mutant_list) for s in rand_size ]
             
-    return sizes
+    return sizes, analysed_sMS, analysed, testexec_sMS, testexec
 #~ def additional_simulation ()
     
 def stat_test (left_FR, left_rMS, left_name, right_FR, right_rMS, right_name):
