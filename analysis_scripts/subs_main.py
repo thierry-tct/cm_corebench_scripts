@@ -595,7 +595,7 @@ def additional_sub_parallel (in_data_valuerange_args_kwargs):
         for indat, tech in ((rand_sMS, RANDOM), (dt_sMS, PRED_DECISION_TREES)):
             for pos,sMS in enumerate(indat):
                 if sMS not in sMS2selsize[tech]:
-                    sMS2selsize[tech][sMS] = set()
+                    sMS2selsize[tech][sMS] = []
                     sMS2analysed[tech][sMS] = []
                     sMS2testexec[tech][sMS] = []
                 sMS2selsize[tech][sMS].append(fixed_size)
