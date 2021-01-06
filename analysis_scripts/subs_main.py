@@ -689,7 +689,7 @@ def additional_simulation (num_sub_repet, test_list, mutant_list,
         for mt_key, mt_val_list in mt_data.items():
             rand_vals, dt_vals, mt_vals = get_other_values (mt_key, mt_val_list, cmp_data, cmp_sorted_keys)
             if is_mutant_proportion:
-                sizes[PRED_MACHINE_TRANSLATION] += [s * 1.0 / len(mutant_list) for s in mt_valse]
+                sizes[PRED_MACHINE_TRANSLATION] += [s * 1.0 / len(mutant_list) for s in mt_vals]
                 sizes[PRED_DECISION_TREES] += [s * 1.0 / len(mutant_list) for s in dt_vals]
                 sizes[RANDOM] += [s * 1.0 / len(mutant_list) for s in rand_vals ]
             else:
