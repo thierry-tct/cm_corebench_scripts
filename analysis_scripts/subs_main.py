@@ -422,18 +422,22 @@ def main():
             plot.plotBoxesHorizontal(size_prop, list(size_prop), size_file_prefix, plot.colors_bw, ylabel="Mutants Proportion" , yticks_range=plot.np.arange(0,1.01,0.2))
             
         print("# Plotting ...")
-        for metric, data_obj in [('Subsuming MS', sim_res), \
-                                 ('Proportion of Mutant Analysed' if Use_proportion_analysed_mutants else '# Mutant Analysed', mutant_analysis_cost_obj), \
-                                 ('# Tests Executed', test_execution_cost_obj),
-                                 ('Mutant Size for Same Subsuming MS', other_sim_res)]:
+        for fname_prefix, metric, data_obj in [('SELECTION-', 'Subsuming MS', sim_res), \
+                                 ('', 'Proportion of Mutant Analysed' if Use_proportion_analysed_mutants else '# Mutant Analysed', mutant_analysis_cost_obj), \
+                                 ('', '# Tests Executed', test_execution_cost_obj),
+                                 ('SELECTION-', 'Selection Size for Same Subsuming MS', other_sim_res),
+                                 ('ANALYSIS-', 'Subsuming MS', anal_sim_res), 
+                                 ('ANALYSIS-', 'Analysed Mutants for Same Subsuming MS', anal_other_sim_res), 
+                                 ('TESTEXECUTION-', 'Subsuming MS', testexec_sim_res), 
+                                 ('TESTEXECUTION-', 'Test Execution for same Subsuming MS', test_exec_other_sim_res)]:
             # Plot box plot
-            image_file = os.path.join(out_folder, metric.replace('#', 'num').replace(' ', '_') + '-' + \
+            image_file = os.path.join(out_folder, fname_prefix + metric.replace('#', 'num').replace(' ', '_') + '-' + \
                                                                 "boxplot_all-{}".format(("pred_size" if fixed_size is None else fixed_size)))
-            image_file_agg = os.path.join(out_folder, metric.replace('#', 'num').replace(' ', '_') + '-' + \
+            image_file_agg = os.path.join(out_folder, fname_prefix + metric.replace('#', 'num').replace(' ', '_') + '-' + \
                                                                 "merged_boxplot_all-{}".format(("pred_size" if fixed_size is None else fixed_size)))
-            median_file_agg = os.path.join(out_folder, metric.replace('#', 'num').replace(' ', '_') + '-' + \
+            median_file_agg = os.path.join(out_folder, fname_prefix + metric.replace('#', 'num').replace(' ', '_') + '-' + \
                                                                 "merged_boxplot_all-{}".format(("pred_size" if fixed_size is None else fixed_size)) + "-median.json")
-            stattest_json_file_agg = os.path.join(out_folder, metric.replace('#', 'num').replace(' ', '_') + '-' + \
+            stattest_json_file_agg = os.path.join(out_folder, fname_prefix + metric.replace('#', 'num').replace(' ', '_') + '-' + \
                                                                 "merged_boxplot_all-{}".format(("pred_size" if fixed_size is None else fixed_size)) + "-stat_test.json")
 
             order = [PRED_MACHINE_TRANSLATION, PRED_DECISION_TREES, RANDOM]
