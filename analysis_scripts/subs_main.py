@@ -577,23 +577,34 @@ def simulation(num_repet, test_list, mutant_list, machine_translation_mutant_lis
     
 def additional_sub_parallel (in_data_valuerange_args_kwargs):
     sMS2selsize = {RANDOM: {}, PRED_DECISION_TREES: {}}
+    sMS2analysed = {RANDOM: {}, PRED_DECISION_TREES: {}}
+    sMS2testexec = {RANDOM: {}, PRED_DECISION_TREES: {}}
+    analysed2sMS = {RANDOM: {}, PRED_DECISION_TREES: {}}
+    testexec2sMS = {RANDOM: {}, PRED_DECISION_TREES: {}}
     multi_sizes_bar = tqdm.tqdm(in_data_valuerange_args_kwargs[0], desc='Multiple Sizes', leave=False)
     args = in_data_valuerange_args_kwargs[1]
     kwargs = dict(in_data_valuerange_args_kwargs[2]) # make a new copy
     for fixed_size in multi_sizes_bar:
         kwargs['fixed_size'] = fixed_size
-        rand_sMS, machine_translation_sMS, decision_trees_sMS, \
+        rand_sMS, machine_translation_sMS, dt_sMS, \
                             mutant_analysis_cost, test_execution_cost = simulation (*args, **kwargs)
-        for sMS in rand_sMS:
-            if sMS not in sMS2selsize[RANDOM]:
-                sMS2selsize[RANDOM][sMS] = set()
-            sMS2selsize[RANDOM][sMS].add(fixed_size)
-        for sMS in decision_trees_sMS:
-            if sMS not in sMS2selsize[PRED_DECISION_TREES]:
-                sMS2selsize[PRED_DECISION_TREES][sMS] = set()
-            sMS2selsize[PRED_DECISION_TREES][sMS].add(fixed_size)
+        for indat, tech in ((rand_sMS, RANDOM), (dt_sMS, PRED_DECISION_TREES)):
+            for pos,sMS in enumerate(indat):
+                if sMS not in sMS2selsize[tech]:
+                    sMS2selsize[tech][sMS] = set()
+                    sMS2analysed[tech][sMS] = []
+                    sMS2testexec[tech][sMS] = []
+                sMS2selsize[tech][sMS].append(fixed_size)
+                sMS2analysed[tech][sMS].append(mutant_analysis_cost[tech][pos])
+                sMS2testexec[tech][sMS].append(test_execution_cost[tech][pos])
+                if mutant_analysis_cost[tech][pos] not in analysed2sMS:
+                    analysed2sMS[mutant_analysis_cost[tech][pos]] = []
+                analysed2sMS[mutant_analysis_cost[tech][pos]].append(sMS)
+                if test_execution_cost[tech][pos] not in testexec2sMS:
+                    testexec2sMS[test_execution_cost[tech][pos]] = []
+                testexec2sMS[test_execution_cost[tech][pos]].append(sMS)
             
-    return sMS2selsize
+    return sMS2selsize, sMS2analysed, sMS2testexec, analysed2sMS, testexec2sMS
 #~ def additional_sub_parallel()
 
 def additional_simulation (num_sub_repet, test_list, mutant_list, 
@@ -622,47 +633,65 @@ def additional_simulation (num_sub_repet, test_list, mutant_list,
         
     # Merge maps
     sMS2selsize = {RANDOM: {}, PRED_DECISION_TREES: {}}
-    for sub_map in map_list:
-        for tech, tdat in sub_map.items():
-            for sMS, ss in tdat.items():
-                if sMS not in sMS2selsize[tech]:
-                    sMS2selsize[tech][sMS] = set()
-                sMS2selsize[tech][sMS] |= ss
+    sMS2analysed = {RANDOM: {}, PRED_DECISION_TREES: {}}
+    sMS2testexec = {RANDOM: {}, PRED_DECISION_TREES: {}}
+    analysed2sMS = {RANDOM: {}, PRED_DECISION_TREES: {}}
+    testexec2sMS = {RANDOM: {}, PRED_DECISION_TREES: {}}
+    for res_tmp in map_list:
+        for partial, aggregated in zip(res_tmp, [sMS2selsize, sMS2analysed, sMS2testexec, analysed2sMS, testexec2sMS]):
+            for tech, tdat in partial.items():
+                for metric, ss in tdat.items():
+                    if metric not in aggregated[tech]:
+                        aggregated[tech][metric] = []
+                    aggregated[tech][metric] += ss
             
-    for tech in sMS2selsize:
-        for sMS in sMS2selsize[tech]:
-            sMS2selsize[tech][sMS] = list (sMS2selsize[tech][sMS])
+    #for aggregated in [sMS2selsize, sMS2analysed, sMS2testexec, analysed2sMS, testexec2sMS]:
+    #    for tech in aggregated:
+    #        for sMS in aggregated[tech]:
+    #            aggregated[tech][sMS] = list (aggregated[tech][sMS])
             
-    sorted_keys_sMS = {RANDOM: sorted(list(sMS2selsize[RANDOM])), PRED_DECISION_TREES: sorted(list(sMS2selsize[PRED_DECISION_TREES]))}
+    sorted_keys_sMS2size = {RANDOM: sorted(list(sMS2selsize[RANDOM])), PRED_DECISION_TREES: sorted(list(sMS2selsize[PRED_DECISION_TREES]))}
+    sorted_keys_sMS2analysed = {RANDOM: sorted(list(sMS2analysed[RANDOM])), PRED_DECISION_TREES: sorted(list(sMS2analysed[PRED_DECISION_TREES]))}
+    sorted_keys_sMS2testexec = {RANDOM: sorted(list(sMS2testexec[RANDOM])), PRED_DECISION_TREES: sorted(list(sMS2testexec[PRED_DECISION_TREES]))}
+    sorted_keys_analysed2sMS = {RANDOM: sorted(list(analysed2sMS[RANDOM])), PRED_DECISION_TREES: sorted(list(analysed2sMS[PRED_DECISION_TREES]))}
+    sorted_keys_testexec2sMS = {RANDOM: sorted(list(testexec2sMS[RANDOM])), PRED_DECISION_TREES: sorted(list(testexec2sMS[PRED_DECISION_TREES]))}
     
-    def get_other_sizes (in_sMS, mt_size_list):
-        pos_r = max(bisect.bisect_right(sorted_keys_sMS[RANDOM], in_sMS) - 1, 0)
-        sMS_r = sorted_keys_sMS[RANDOM][pos_r]
-        pos_d = max(bisect.bisect_right(sorted_keys_sMS[PRED_DECISION_TREES], in_sMS) - 1, 0)
-        sMS_d = sorted_keys_sMS[PRED_DECISION_TREES][pos_d]
+    def get_other_values (in_sMS, mt_size_list, dict_data, sorted_keys):
+        pos_r = max(bisect.bisect_right(sorted_keys[RANDOM], in_sMS) - 1, 0)
+        sMS_r = sorted_keys[RANDOM][pos_r]
+        pos_d = max(bisect.bisect_right(sorted_keys[PRED_DECISION_TREES], in_sMS) - 1, 0)
+        sMS_d = sorted_keys[PRED_DECISION_TREES][pos_d]
         
-        min_ss = min (len(sMS2selsize[RANDOM][sMS_r]), len(sMS2selsize[PRED_DECISION_TREES][sMS_d]), len(mt_size_list))
-        rand_size = random.sample(sMS2selsize[RANDOM][sMS_r], min_ss)
-        dt_size = random.sample(sMS2selsize[PRED_DECISION_TREES][sMS_d], min_ss)
+        min_ss = min (len(dict_data[RANDOM][sMS_r]), len(dict_data[PRED_DECISION_TREES][sMS_d]), len(mt_size_list))
+        rand_size = random.sample(dict_data[RANDOM][sMS_r], min_ss)
+        dt_size = random.sample(dict_data[PRED_DECISION_TREES][sMS_d], min_ss)
         mt_size = random.sample(mt_size_list, min_ss)
         return rand_size, dt_size, mt_size
-    #~def get_other_sizes ()
+    #~def get_other_values ()
     
     sizes = {RANDOM: [], PRED_DECISION_TREES: [], PRED_MACHINE_TRANSLATION: []}
     analysed_sMS = {RANDOM: [], PRED_DECISION_TREES: [], PRED_MACHINE_TRANSLATION: []}
     analysed = {RANDOM: [], PRED_DECISION_TREES: [], PRED_MACHINE_TRANSLATION: []}
     testexec_sMS = {RANDOM: [], PRED_DECISION_TREES: [], PRED_MACHINE_TRANSLATION: []}
     testexec = {RANDOM: [], PRED_DECISION_TREES: [], PRED_MACHINE_TRANSLATION: []}
-    for mt_sMS, mt_size_list in machine_translation_sMS2size.items():
-        rand_size, dt_size, mt_size = get_other_sizes (mt_sMS, mt_size_list)
-        if use_raw_number:
-            sizes[PRED_MACHINE_TRANSLATION] += mt_size
-            sizes[PRED_DECISION_TREES] += dt_size
-            sizes[RANDOM] += rand_size
-        else:
-            sizes[PRED_MACHINE_TRANSLATION] += [s * 1.0 / len(mutant_list) for s in mt_size]
-            sizes[PRED_DECISION_TREES] += [s * 1.0 / len(mutant_list) for s in dt_size]
-            sizes[RANDOM] += [s * 1.0 / len(mutant_list) for s in rand_size ]
+    
+    for mt_data, cmp_data, cmp_sorted_keys, is_mutant_proportion in [
+                        (machine_translation_sMS2size, sMS2selsize, sorted_keys_sMS2size, (not use_raw_number)),
+                        (mt_sMS2analysed, sMS2analysed, sorted_keys_sMS2analysed, (not use_raw_number)),
+                        (mt_sMS2testexec, sMS2testexec, sorted_keys_sMS2testexec, False),
+                        (mt_analysed2sMS, analysed2sMS, sorted_keys_analysed2sMS, False),
+                        (mt_testexec2sMS, testexec2sMS, sorted_keys_testexec2sMS, False),                        
+                                                                    ]:    
+        for mt_key, mt_val_list in mt_data.items():
+            rand_vals, dt_vals, mt_vals = get_other_values (mt_key, mt_val_list, cmp_data, cmp_sorted_keys)
+            if is_mutant_proportion:
+                sizes[PRED_MACHINE_TRANSLATION] += [s * 1.0 / len(mutant_list) for s in mt_valse]
+                sizes[PRED_DECISION_TREES] += [s * 1.0 / len(mutant_list) for s in dt_vals]
+                sizes[RANDOM] += [s * 1.0 / len(mutant_list) for s in rand_vals ]
+            else:
+                sizes[PRED_MACHINE_TRANSLATION] += mt_vals
+                sizes[PRED_DECISION_TREES] += dt_vals
+                sizes[RANDOM] += rand_vals
             
     return sizes, analysed_sMS, analysed, testexec_sMS, testexec
 #~ def additional_simulation ()
