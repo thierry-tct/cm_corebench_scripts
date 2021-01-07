@@ -423,8 +423,9 @@ def main():
             
         print("# Plotting ...")
         for fname_prefix, metric, data_obj, is_proportion in [('SELECTION-', 'Subsuming MS', sim_res, True), 
-                                 #('', 'Proportion of Mutant Analysed' if Use_proportion_analysed_mutants else '# Mutant Analysed', mutant_analysis_cost_obj), 
-                                 #('', '# Tests Executed', test_execution_cost_obj), 
+                                 ('SEL-UNUSED-', 'Proportion of Mutant Analysed' if Use_proportion_analysed_mutants else '# Mutant Analysed', \
+                                                                                    mutant_analysis_cost_obj, Use_proportion_analysed_mutants), 
+                                 ('SEL-UNUSED', '# Tests Executed', test_execution_cost_obj, False), 
                                  ('SELECTION-', 'Selection Size for Same Subsuming MS', other_sim_res, True), 
                                  ('ANALYSIS-', 'Subsuming MS', anal_sim_res, True), 
                                  ('ANALYSIS-', 'Analysed Mutants for Same Subsuming MS', anal_other_sim_res, True), 
