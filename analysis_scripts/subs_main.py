@@ -422,14 +422,14 @@ def main():
             plot.plotBoxesHorizontal(size_prop, list(size_prop), size_file_prefix, plot.colors_bw, ylabel="Mutants Proportion" , yticks_range=plot.np.arange(0,1.01,0.2))
             
         print("# Plotting ...")
-        for fname_prefix, metric, data_obj in [('SELECTION-', 'Subsuming MS', sim_res), \
-                                 ('', 'Proportion of Mutant Analysed' if Use_proportion_analysed_mutants else '# Mutant Analysed', mutant_analysis_cost_obj), \
-                                 ('', '# Tests Executed', test_execution_cost_obj), \
-                                 ('SELECTION-', 'Selection Size for Same Subsuming MS', other_sim_res), \
-                                 ('ANALYSIS-', 'Subsuming MS', anal_sim_res), \
-                                 ('ANALYSIS-', 'Analysed Mutants for Same Subsuming MS', anal_other_sim_res), \
-                                 ('TESTEXECUTION-', 'Subsuming MS', testexec_sim_res), \
-                                 ('TESTEXECUTION-', 'Test Execution for same Subsuming MS', test_exec_other_sim_res)]:
+        for fname_prefix, metric, data_obj, is_proportion in [('SELECTION-', 'Subsuming MS', sim_res, True), 
+                                 #('', 'Proportion of Mutant Analysed' if Use_proportion_analysed_mutants else '# Mutant Analysed', mutant_analysis_cost_obj), 
+                                 #('', '# Tests Executed', test_execution_cost_obj), 
+                                 ('SELECTION-', 'Selection Size for Same Subsuming MS', other_sim_res, True), 
+                                 ('ANALYSIS-', 'Subsuming MS', anal_sim_res, True), 
+                                 ('ANALYSIS-', 'Analysed Mutants for Same Subsuming MS', anal_other_sim_res, True), 
+                                 ('TESTEXECUTION-', 'Subsuming MS', testexec_sim_res, True), 
+                                 ('TESTEXECUTION-', 'Test Execution for same Subsuming MS', test_exec_other_sim_res, False)]:
             # Plot box plot
             print ("@Plot: Plotting {} - {} ...".format(fname_prefix, metric))
             image_file = os.path.join(out_folder, fname_prefix + metric.replace('#', 'num').replace(' ', '_') + '-' + \
@@ -453,7 +453,7 @@ def main():
                         if metric_val > max_metric_val:
                             max_metric_val = metric_val
             if len(data_df) > 0:
-                if metric in ('Subsuming MS', 'Proportion of Mutant Analysed', 'Mutant Size for Same Subsuming MS'):
+                if is_proportion:
                     yticks_range = plot.np.arange(0,1.01,0.2)
                 else:
                     yticks_range = plot.np.linspace(0, max_metric_val + 1, 10)
@@ -470,8 +470,9 @@ def main():
                 
                 # Stat_test agg
                 stat_test_obj = inner_stattest(merged_dat, stattest_json_file_agg, order=order)
+                print ("   :) @@Plot: Done for {} - {}!".format(fname_prefix, metric))
             else:
-                print ("    @@Plot: No Data for {} - {}!".format(fname_prefix, metric))
+                print ("   :( @@Plot: No Data for {} - {}!".format(fname_prefix, metric))
                 
     print("@DONE (after {}  h:min:sec) !".format(str(timedelta(seconds=(time.time() - start_time)))))
 #~ def main()
@@ -682,23 +683,23 @@ def additional_simulation (num_sub_repet, test_list, mutant_list,
     testexec_sMS = {RANDOM: [], PRED_DECISION_TREES: [], PRED_MACHINE_TRANSLATION: []}
     testexec = {RANDOM: [], PRED_DECISION_TREES: [], PRED_MACHINE_TRANSLATION: []}
     
-    for mt_data, cmp_data, cmp_sorted_keys, is_mutant_proportion in [
-                        (machine_translation_sMS2size, sMS2selsize, sorted_keys_sMS2size, (not use_raw_number)),
-                        (mt_sMS2analysed, sMS2analysed, sorted_keys_sMS2analysed, (not use_raw_number)),
-                        (mt_sMS2testexec, sMS2testexec, sorted_keys_sMS2testexec, False),
-                        (mt_analysed2sMS, analysed2sMS, sorted_keys_analysed2sMS, False),
-                        (mt_testexec2sMS, testexec2sMS, sorted_keys_testexec2sMS, False),                        
+    for out_obj, mt_data, cmp_data, cmp_sorted_keys, is_mutant_proportion in [
+                        (sizes, machine_translation_sMS2size, sMS2selsize, sorted_keys_sMS2size, (not use_raw_number)),
+                        (analysed, mt_sMS2analysed, sMS2analysed, sorted_keys_sMS2analysed, (not use_raw_number)),
+                        (testexec, mt_sMS2testexec, sMS2testexec, sorted_keys_sMS2testexec, False),
+                        (analysed_sMS, mt_analysed2sMS, analysed2sMS, sorted_keys_analysed2sMS, False),
+                        (testexec_sMS, mt_testexec2sMS, testexec2sMS, sorted_keys_testexec2sMS, False),                        
                                                                     ]:    
         for mt_key, mt_val_list in mt_data.items():
             rand_vals, dt_vals, mt_vals = get_other_values (mt_key, mt_val_list, cmp_data, cmp_sorted_keys)
             if is_mutant_proportion:
-                sizes[PRED_MACHINE_TRANSLATION] += [s * 1.0 / len(mutant_list) for s in mt_vals]
-                sizes[PRED_DECISION_TREES] += [s * 1.0 / len(mutant_list) for s in dt_vals]
-                sizes[RANDOM] += [s * 1.0 / len(mutant_list) for s in rand_vals ]
+                out_obj[PRED_MACHINE_TRANSLATION] += [s * 1.0 / len(mutant_list) for s in mt_vals]
+                out_obj[PRED_DECISION_TREES] += [s * 1.0 / len(mutant_list) for s in dt_vals]
+                out_obj[RANDOM] += [s * 1.0 / len(mutant_list) for s in rand_vals ]
             else:
-                sizes[PRED_MACHINE_TRANSLATION] += mt_vals
-                sizes[PRED_DECISION_TREES] += dt_vals
-                sizes[RANDOM] += rand_vals
+                out_obj[PRED_MACHINE_TRANSLATION] += mt_vals
+                out_obj[PRED_DECISION_TREES] += dt_vals
+                out_obj[RANDOM] += rand_vals
             
     return sizes, analysed_sMS, analysed, testexec_sMS, testexec
 #~ def additional_simulation ()
