@@ -422,37 +422,42 @@ def main():
             plot.plotBoxesHorizontal(size_prop, list(size_prop), size_file_prefix, plot.colors_bw, ylabel="Mutants Proportion" , yticks_range=plot.np.arange(0,1.01,0.2))
             
         print("# Plotting ...")
-        for fname_prefix, metric, data_obj, is_proportion in [('SELECTION-', 'Subsuming MS', sim_res, True), 
+        for fname_prefix, metric, data_obj, is_proportion in [('SELECTION-', 'MS*', sim_res, True), 
                                  ('SEL-UNUSED-', 'Proportion of Mutant Analysed' if Use_proportion_analysed_mutants else '# Mutant Analysed', \
                                                                                     mutant_analysis_cost_obj, Use_proportion_analysed_mutants), 
                                  ('SEL-UNUSED', '# Tests Executed', test_execution_cost_obj, False), 
-                                 ('SELECTION-', 'Selection Size for Same Subsuming MS', other_sim_res, True), 
-                                 ('ANALYSIS-', 'Subsuming MS', anal_sim_res, True), 
-                                 ('ANALYSIS-', 'Analysed Mutants for Same Subsuming MS', anal_other_sim_res, False), 
-                                 ('TESTEXECUTION-', 'Subsuming MS', testexec_sim_res, True), 
-                                 ('TESTEXECUTION-', 'Test Execution for same Subsuming MS', test_exec_other_sim_res, False)]:
+                                 ('SELECTION-', 'Selection Size for Same MS*', other_sim_res, True), 
+                                 ('ANALYSIS-', 'MS*', anal_sim_res, True), 
+                                 ('ANALYSIS-', 'Analysed Mutants for Same MS*', anal_other_sim_res, False), 
+                                 ('TESTEXECUTION-', 'MS*', testexec_sim_res, True), 
+                                 ('TESTEXECUTION-', 'Test Execution for same MS*', test_exec_other_sim_res, False)]:
             # Plot box plot
             print ("@Plot: Plotting {} - {} ...".format(fname_prefix, metric))
-            image_file = os.path.join(out_folder, fname_prefix + metric.replace('#', 'num').replace(' ', '_') + '-' + \
+            image_file = os.path.join(out_folder, fname_prefix + metric.replace('#', 'num').replace(' ', '_').replace('MS*', 'SubsumingMS') + '-' + \
                                                                 "boxplot_all-{}".format(("pred_size" if fixed_size is None else fixed_size)))
-            image_file_agg = os.path.join(out_folder, fname_prefix + metric.replace('#', 'num').replace(' ', '_') + '-' + \
+            image_file_agg = os.path.join(out_folder, fname_prefix + metric.replace('#', 'num').replace(' ', '_').replace('MS*', 'SubsumingMS') + '-' + \
                                                                 "merged_boxplot_all-{}".format(("pred_size" if fixed_size is None else fixed_size)))
-            median_file_agg = os.path.join(out_folder, fname_prefix + metric.replace('#', 'num').replace(' ', '_') + '-' + \
+            median_file_agg = os.path.join(out_folder, fname_prefix + metric.replace('#', 'num').replace(' ', '_').replace('MS*', 'SubsumingMS') + '-' + \
                                                                 "merged_boxplot_all-{}".format(("pred_size" if fixed_size is None else fixed_size)) + "-median.json")
-            stattest_json_file_agg = os.path.join(out_folder, fname_prefix + metric.replace('#', 'num').replace(' ', '_') + '-' + \
+            stattest_json_file_agg = os.path.join(out_folder, fname_prefix + metric.replace('#', 'num').replace(' ', '_').replace('MS*', 'SubsumingMS') + '-' + \
                                                                 "merged_boxplot_all-{}".format(("pred_size" if fixed_size is None else fixed_size)) + "-stat_test.json")
 
             order = [PRED_MACHINE_TRANSLATION, PRED_DECISION_TREES, RANDOM]
             data_df = []
+            mt_diff_df = {}
             merged_dat = {t: [] for t in order}
             max_metric_val = 0
             for proj, p_dat in data_obj.items():
                 for tech, t_dat in p_dat.items():
-                    for metric_val in t_dat:
+                    for ind, metric_val in enumerate(t_dat):
                         data_df.append({'Program': proj[:10], metric: metric_val, 'Tech': tech})
                         merged_dat[tech].append(metric_val)
                         if metric_val > max_metric_val:
                             max_metric_val = metric_val
+                        if tech != PRED_MACHINE_TRANSLATION:
+                            if tech not in mt_diff_df:
+                                mt_diff_df[tech] = {}
+                            mt_diff_df[tech].append({'Program': proj[:2]+'_'+proj[-2:], 'Diff': (p_dat[PRED_MACHINE_TRANSLATION][ind] - metric_val)})
             if len(data_df) > 0:
                 if is_proportion:
                     yticks_range = plot.np.arange(0,1.01,0.2)
@@ -471,6 +476,23 @@ def main():
                 
                 # Stat_test agg
                 stat_test_obj = inner_stattest(merged_dat, stattest_json_file_agg, order=order)
+                
+                # value-diff
+                for other_t in mt_diff_df:
+                    cost_diff_df = pd.DataFrame(mt_diff_df[other_t])
+                    imageout = os.path.join(out_folder, fname_prefix + "VS".join(PRED_MACHINE_TRANSLATION, other_t) + \
+                                                                metric.replace('#', 'num').replace(' ', '_').replace('MS*', 'SubsumingMS') + '-' + \
+                                                                "boxplot_all-{}".format(("pred_size" if fixed_size is None else fixed_size)))
+                    diff_inc = list(cost_diff_df.groupby(['Program']).median().sort_values(by=['Diff']).index)
+                    ax = sns.boxplot(x="Program", y="Diff", data=cost_diff_df, order=diff_inc, palette="Set3", medianprops={'linewidth':4})
+                    plt.title(" - ".join(PRED_MACHINE_TRANSLATION, other_t), fontdict={'weight':'bold'}, fontsize=18)
+                    #plt.yticks(rotation=30, va='top', fontsize=18-5)
+                    plt.xlabel("Program", fontsize=18)
+                    plt.ylabel("Difference of "+metric, fontsize=18)
+                    plt.tight_layout()
+                    plot.plt.savefig(imageout+".pdf", format='pdf') #, bbox_extra_artists=(lgd,), bbox_inches='tight')
+                    plot.plt.close('all')
+                
                 print ("   :) @@Plot: Done for {} - {}!".format(fname_prefix, metric))
             else:
                 print ("   :( @@Plot: No Data for {} - {}!".format(fname_prefix, metric))
