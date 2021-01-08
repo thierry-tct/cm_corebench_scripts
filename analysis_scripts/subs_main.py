@@ -456,7 +456,7 @@ def main():
                             max_metric_val = metric_val
                         if tech != PRED_MACHINE_TRANSLATION:
                             if tech not in mt_diff_df:
-                                mt_diff_df[tech] = {}
+                                mt_diff_df[tech] = []
                             mt_diff_df[tech].append({'Program': proj[:2]+'_'+proj[-2:], 'Diff': (p_dat[PRED_MACHINE_TRANSLATION][ind] - metric_val)})
             if len(data_df) > 0:
                 if is_proportion:
