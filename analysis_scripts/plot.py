@@ -224,10 +224,10 @@ def plotCostDiff(cost_diff_df, title, imageout, x_label="Fault Revelation Rate",
     fontsize=18
     plt.style.use(u'ggplot')
     if with_color:
-        sns_plot = sns.boxplot(x="FD", y="Cost-Difference", data=cost_diff_df, sym=fliers_sym)
+        sns_plot = sns.boxplot(x="x", y="y", data=cost_diff_df, sym=fliers_sym)
     else:
         #sns_plot = sns.boxplot(x="FD", y="Cost-Difference", data=cost_diff_df, sym=fliers_sym, color='white')
-	sns_plot = sns.boxplot(x="FD", y="Cost-Difference", data=cost_diff_df, sym=fliers_sym, palette='light:b')
+	sns_plot = sns.boxplot(x="x", y="y", data=cost_diff_df, sym=fliers_sym, palette='light:b')
         
     #sns_plot.set_xticklabels(None, 10)
     #plt.subplots_adjust(top=0.9)
