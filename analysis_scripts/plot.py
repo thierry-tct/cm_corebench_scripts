@@ -216,3 +216,28 @@ def plotBoxesHorizontal(plotobj, order, imagefile, colors_bw, ylabel="APFD", yti
     plt.close('all')
     return medianValues
 #~ def plotBoxesHorizontal()
+
+def plotCostDiff(cost_diff_df, title, imageout, x_label="Fault Revelation Rate", y_label="Cost Difference (in Seconds)", fliers_sym=None, with_color=False):
+    #cost_diff_all.to_csv(os.path.join(outdir,_costdiffall+".csv"), index=False)
+    #cost_diff_konly.to_csv(os.path.join(outdir,_costdiffkonly+".csv"), index=False)
+
+    fontsize=18
+    plt.style.use(u'ggplot')
+    if with_color:
+        sns_plot = sns.boxplot(x="FD", y="Cost-Difference", data=cost_diff_df, sym=fliers_sym)
+    else:
+        sns_plot = sns.boxplot(x="FD", y="Cost-Difference", data=cost_diff_df, sym=fliers_sym, color='white')
+        
+    #sns_plot.set_xticklabels(None, 10)
+    #plt.subplots_adjust(top=0.9)
+    #sns_plot.set_titles(title)
+    #sns_plot.fig.suptitle('Mutant Execution Cost Difference (ALL)')
+    plt.title(title, fontdict={'weight':'bold'}, fontsize=fontsize)
+    plt.xticks(range(0,101,10), range(0, 101, 10), fontsize=fontsize-5)
+    plt.yticks(rotation=30, va='top', fontsize=fontsize-5)
+    plt.xlabel(x_label, fontsize=fontsize)
+    plt.ylabel(y_label, fontsize=fontsize)
+    plt.tight_layout()
+    plt.savefig(imageout+".pdf", format="pdf")
+    plt.close('all')
+#~ plotCostDiff()
