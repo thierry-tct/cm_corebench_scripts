@@ -687,7 +687,7 @@ def additional_simulation (num_sub_repet, test_list, mutant_list,
     sorted_keys_analysed2sMS = {RANDOM: sorted(list(analysed2sMS[RANDOM])), PRED_DECISION_TREES: sorted(list(analysed2sMS[PRED_DECISION_TREES]))}
     sorted_keys_testexec2sMS = {RANDOM: sorted(list(testexec2sMS[RANDOM])), PRED_DECISION_TREES: sorted(list(testexec2sMS[PRED_DECISION_TREES]))}
     
-    def get_other_values (in_sMS, mt_size_list, dict_data, sorted_keys, lowbound=True):
+    def get_other_values (in_sMS, mt_size_list, dict_data, sorted_keys, lowerbound=True):
         if lowerbound:
             pos_r = max(bisect.bisect_right(sorted_keys[RANDOM], in_sMS) - 1, 0)
             pos_d = max(bisect.bisect_right(sorted_keys[PRED_DECISION_TREES], in_sMS) - 1, 0)
