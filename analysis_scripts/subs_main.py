@@ -480,12 +480,12 @@ def main():
                 # value-diff
                 for other_t in mt_diff_df:
                     cost_diff_df = pd.DataFrame(mt_diff_df[other_t])
-                    imageout = os.path.join(out_folder, fname_prefix + "VS".join(PRED_MACHINE_TRANSLATION, other_t) + \
+                    imageout = os.path.join(out_folder, fname_prefix + "VS".join([PRED_MACHINE_TRANSLATION, other_t]) + \
                                                                 metric.replace('#', 'num').replace(' ', '_').replace('MS*', 'SubsumingMS') + '-' + \
                                                                 "boxplot_all-{}".format(("pred_size" if fixed_size is None else fixed_size)))
                     diff_inc = list(cost_diff_df.groupby(['Program']).median().sort_values(by=['Diff']).index)
                     ax = sns.boxplot(x="Program", y="Diff", data=cost_diff_df, order=diff_inc, palette="Set3", medianprops={'linewidth':4})
-                    plt.title(" - ".join(PRED_MACHINE_TRANSLATION, other_t), fontdict={'weight':'bold'}, fontsize=18)
+                    plt.title(" - ".join([PRED_MACHINE_TRANSLATION, other_t]), fontdict={'weight':'bold'}, fontsize=18)
                     #plt.yticks(rotation=30, va='top', fontsize=18-5)
                     plt.xlabel("Program", fontsize=18)
                     plt.ylabel("Difference of "+metric, fontsize=18)
