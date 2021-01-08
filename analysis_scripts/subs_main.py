@@ -428,7 +428,7 @@ def main():
                                  ('SEL-UNUSED', '# Tests Executed', test_execution_cost_obj, False), 
                                  ('SELECTION-', 'Selection Size for Same Subsuming MS', other_sim_res, True), 
                                  ('ANALYSIS-', 'Subsuming MS', anal_sim_res, True), 
-                                 ('ANALYSIS-', 'Analysed Mutants for Same Subsuming MS', anal_other_sim_res, True), 
+                                 ('ANALYSIS-', 'Analysed Mutants for Same Subsuming MS', anal_other_sim_res, False), 
                                  ('TESTEXECUTION-', 'Subsuming MS', testexec_sim_res, True), 
                                  ('TESTEXECUTION-', 'Test Execution for same Subsuming MS', test_exec_other_sim_res, False)]:
             # Plot box plot
@@ -665,10 +665,14 @@ def additional_simulation (num_sub_repet, test_list, mutant_list,
     sorted_keys_analysed2sMS = {RANDOM: sorted(list(analysed2sMS[RANDOM])), PRED_DECISION_TREES: sorted(list(analysed2sMS[PRED_DECISION_TREES]))}
     sorted_keys_testexec2sMS = {RANDOM: sorted(list(testexec2sMS[RANDOM])), PRED_DECISION_TREES: sorted(list(testexec2sMS[PRED_DECISION_TREES]))}
     
-    def get_other_values (in_sMS, mt_size_list, dict_data, sorted_keys):
-        pos_r = max(bisect.bisect_right(sorted_keys[RANDOM], in_sMS) - 1, 0)
+    def get_other_values (in_sMS, mt_size_list, dict_data, sorted_keys, lowbound=True):
+        if lowerbound:
+            pos_r = max(bisect.bisect_right(sorted_keys[RANDOM], in_sMS) - 1, 0)
+            pos_d = max(bisect.bisect_right(sorted_keys[PRED_DECISION_TREES], in_sMS) - 1, 0)
+        else:
+            pos_r = max(bisect.bisect_left(sorted_keys[RANDOM], in_sMS), 0)
+            pos_d = max(bisect.bisect_left(sorted_keys[PRED_DECISION_TREES], in_sMS), 0)
         sMS_r = sorted_keys[RANDOM][pos_r]
-        pos_d = max(bisect.bisect_right(sorted_keys[PRED_DECISION_TREES], in_sMS) - 1, 0)
         sMS_d = sorted_keys[PRED_DECISION_TREES][pos_d]
         
         min_ss = min (len(dict_data[RANDOM][sMS_r]), len(dict_data[PRED_DECISION_TREES][sMS_d]), len(mt_size_list))
@@ -684,15 +688,15 @@ def additional_simulation (num_sub_repet, test_list, mutant_list,
     testexec_sMS = {RANDOM: [], PRED_DECISION_TREES: [], PRED_MACHINE_TRANSLATION: []}
     testexec = {RANDOM: [], PRED_DECISION_TREES: [], PRED_MACHINE_TRANSLATION: []}
     
-    for out_obj, mt_data, cmp_data, cmp_sorted_keys, is_mutant_proportion in [
-                        (sizes, machine_translation_sMS2size, sMS2selsize, sorted_keys_sMS2size, (not use_raw_number)),
-                        (analysed, mt_sMS2analysed, sMS2analysed, sorted_keys_sMS2analysed, (not use_raw_number)),
-                        (testexec, mt_sMS2testexec, sMS2testexec, sorted_keys_sMS2testexec, False),
-                        (analysed_sMS, mt_analysed2sMS, analysed2sMS, sorted_keys_analysed2sMS, False),
-                        (testexec_sMS, mt_testexec2sMS, testexec2sMS, sorted_keys_testexec2sMS, False),                        
+    for out_obj, mt_data, cmp_data, cmp_sorted_keys, is_mutant_proportion, lowerbound in [
+                        (sizes, machine_translation_sMS2size, sMS2selsize, sorted_keys_sMS2size, (not use_raw_number), True),
+                        (analysed, mt_sMS2analysed, sMS2analysed, sorted_keys_sMS2analysed, False, True),
+                        (testexec, mt_sMS2testexec, sMS2testexec, sorted_keys_sMS2testexec, False, True),
+                        (analysed_sMS, mt_analysed2sMS, analysed2sMS, sorted_keys_analysed2sMS, False, False),
+                        (testexec_sMS, mt_testexec2sMS, testexec2sMS, sorted_keys_testexec2sMS, False, False),                        
                                                                     ]:    
         for mt_key, mt_val_list in mt_data.items():
-            rand_vals, dt_vals, mt_vals = get_other_values (mt_key, mt_val_list, cmp_data, cmp_sorted_keys)
+            rand_vals, dt_vals, mt_vals = get_other_values (mt_key, mt_val_list, cmp_data, cmp_sorted_keys, lowerbound=lowerbound)
             if is_mutant_proportion:
                 out_obj[PRED_MACHINE_TRANSLATION] += [s * 1.0 / len(mutant_list) for s in mt_vals]
                 out_obj[PRED_DECISION_TREES] += [s * 1.0 / len(mutant_list) for s in dt_vals]
