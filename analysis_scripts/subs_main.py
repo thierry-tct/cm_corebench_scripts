@@ -32,7 +32,7 @@ RANDOM = "RANDOM"
 PRED_MACHINE_TRANSLATION = "MACHINE-TRANSLATION"
 PRED_DECISION_TREES = "DECISION-TREES"
 
-Use_proportion_analysed_mutants = True
+Use_proportion_analysed_mutants = False
 
 def error_exit(err):
     print("@Error: "+err)
@@ -428,7 +428,7 @@ def main():
                                  ('SEL-UNUSED', '# Tests Executed', test_execution_cost_obj, False), 
                                  ('SELECTION-', 'Selection Size for Same MS*', other_sim_res, True), 
                                  ('ANALYSIS-', 'MS*', anal_sim_res, True), 
-                                 ('ANALYSIS-', 'Analysed Mutants for Same MS*', anal_other_sim_res, False), 
+                                 ('ANALYSIS-', 'Analysed Mutants for Same MS*', anal_other_sim_res, Use_proportion_analysed_mutants), 
                                  ('TESTEXECUTION-', 'MS*', testexec_sim_res, True), 
                                  ('TESTEXECUTION-', 'Test Execution for same MS*', test_exec_other_sim_res, False)]:
             # Plot box plot
@@ -646,7 +646,7 @@ def additional_simulation (num_sub_repet, test_list, mutant_list,
                               mt_sMS2testexec=None, \
                               mt_analysed2sMS=None, \
                               mt_testexec2sMS=None, \
-                              use_raw_number=False, parallel_count=1):
+                              use_raw_sel_number=False, parallel_count=1):
     
     assert parallel_count > 0, "invalid parallel_count"
     
@@ -711,8 +711,8 @@ def additional_simulation (num_sub_repet, test_list, mutant_list,
     testexec = {RANDOM: [], PRED_DECISION_TREES: [], PRED_MACHINE_TRANSLATION: []}
     
     for out_obj, mt_data, cmp_data, cmp_sorted_keys, is_mutant_proportion, lowerbound in [
-                        (sizes, machine_translation_sMS2size, sMS2selsize, sorted_keys_sMS2size, (not use_raw_number), True),
-                        (analysed, mt_sMS2analysed, sMS2analysed, sorted_keys_sMS2analysed, False, True),
+                        (sizes, machine_translation_sMS2size, sMS2selsize, sorted_keys_sMS2size, (not use_raw_sel_number), True),
+                        (analysed, mt_sMS2analysed, sMS2analysed, sorted_keys_sMS2analysed, Use_proportion_analysed_mutants, True),
                         (testexec, mt_sMS2testexec, sMS2testexec, sorted_keys_sMS2testexec, False, True),
                         (analysed_sMS, mt_analysed2sMS, analysed2sMS, sorted_keys_analysed2sMS, False, False),
                         (testexec_sMS, mt_testexec2sMS, testexec2sMS, sorted_keys_testexec2sMS, False, False),                        
