@@ -339,6 +339,7 @@ def main():
         test_exec_other_sim_res = {}
         mutant_analysis_cost_obj = {}
         test_execution_cost_obj = {}
+        equivalent_mutants_obj = {}
         tq_data = tqdm.tqdm(list(all_tests))
         for proj in tq_data:
             tq_data.set_description("Simulating for {} ...".format(proj))
@@ -361,7 +362,8 @@ def main():
             sim_res[proj][RANDOM], sim_res[proj][PRED_MACHINE_TRANSLATION], \
                                 sim_res[proj][PRED_DECISION_TREES], \
                                 mutant_analysis_cost_obj[proj], \
-                                test_execution_cost_obj[proj] = simulation(NUM_REPETITIONS, all_tests[proj], \
+                                test_execution_cost_obj[proj], \
+                                equivalent_mutants_obj[proj] = simulation(NUM_REPETITIONS, all_tests[proj], \
                                                                              all_mutants[proj], \
                                                                              machine_translation_mutants[proj], \
                                                                              decision_trees_mutants[proj], \
@@ -426,6 +428,8 @@ def main():
                                  ('SEL-UNUSED-', 'Proportion of Mutant Analysed' if Use_proportion_analysed_mutants else '# Mutant Analysed', \
                                                                                     mutant_analysis_cost_obj, Use_proportion_analysed_mutants), 
                                  ('SEL-UNUSED', '# Tests Executed', test_execution_cost_obj, False), 
+                                 ('SEL-USED-', 'Proportion of Equivalent Mutant' if Use_proportion_analysed_mutants else '# Equivalent Mutants', \
+                                                                                    equivalent_mutants_obj, Use_proportion_analysed_mutants), 
                                  ('SELECTION-', 'Selection Size for Same MS*', other_sim_res, True), 
                                  ('ANALYSIS-', 'MS*', anal_sim_res, True), 
                                  ('ANALYSIS-', 'Analysed Mutants for Same MS*', anal_other_sim_res, Use_proportion_analysed_mutants), 
@@ -516,6 +520,7 @@ def simulation(num_repet, test_list, mutant_list, machine_translation_mutant_lis
     decision_trees_test_suites = []
     mutant_analysis_cost = {n: [] for n in (RANDOM, PRED_MACHINE_TRANSLATION, PRED_DECISION_TREES)}
     test_execution_cost = {n: [] for n in (RANDOM, PRED_MACHINE_TRANSLATION, PRED_DECISION_TREES)}
+    equivalent_mutants = {n: [] for n in (RANDOM, PRED_MACHINE_TRANSLATION, PRED_DECISION_TREES)}
     
     repet_bar = tqdm.tqdm(range(num_repet), desc='Repetitions', leave=False)
     for repet_id in repet_bar:
@@ -558,6 +563,7 @@ def simulation(num_repet, test_list, mutant_list, machine_translation_mutant_lis
             for techname, rem_set, TS_list in tasks:
                 analysed_muts_num = 0
                 exec_tests_num = 0
+                equivalent_muts_num = 0
                 while len(rem_set) > 0:
                     # pick a mutant
                     if techname == PRED_DECISION_TREES: 
@@ -584,11 +590,14 @@ def simulation(num_repet, test_list, mutant_list, machine_translation_mutant_lis
                         rem_set -= set(tests_to_killed_mutants[t]) & rem_set
                     else:
                         rem_set -= {m}
+                        equivalent_muts_num += 1
                         
                 if Use_proportion_analysed_mutants:
                     mutant_analysis_cost[techname].append(analysed_muts_num * 1.0 / len(mutant_list))
+                    equivalent_mutants[techname].append(equivalent_muts_num * 1.0 / len(mutant_list))
                 else:
                     mutant_analysis_cost[techname].append(analysed_muts_num)
+                    equivalent_mutants[techname].append(equivalent_muts_num)
                 test_execution_cost[techname].append(exec_tests_num)
                         
 
@@ -603,7 +612,7 @@ def simulation(num_repet, test_list, mutant_list, machine_translation_mutant_lis
     for ts in decision_trees_test_suites:
         decision_trees_sMS.append(get_subs_ms(ts, tests_to_killed_subs_cluster))
 
-    return rand_sMS, machine_translation_sMS, decision_trees_sMS, mutant_analysis_cost, test_execution_cost
+    return rand_sMS, machine_translation_sMS, decision_trees_sMS, mutant_analysis_cost, test_execution_cost, equivalent_mutants
 #~ def simulation()
     
 def additional_sub_parallel (in_data_valuerange_args_kwargs):
@@ -618,7 +627,7 @@ def additional_sub_parallel (in_data_valuerange_args_kwargs):
     for fixed_size in multi_sizes_bar:
         kwargs['fixed_size'] = fixed_size
         rand_sMS, machine_translation_sMS, dt_sMS, \
-                            mutant_analysis_cost, test_execution_cost = simulation (*args, **kwargs)
+                mutant_analysis_cost, test_execution_cost, equivalent_mutants = simulation (*args, **kwargs)
         for indat, tech in ((rand_sMS, RANDOM), (dt_sMS, PRED_DECISION_TREES)):
             for pos,sMS in enumerate(indat):
                 if sMS not in sMS2selsize[tech]:
