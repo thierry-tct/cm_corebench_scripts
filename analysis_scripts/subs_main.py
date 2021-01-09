@@ -425,11 +425,10 @@ def main():
             
         print("# Plotting ...")
         for fname_prefix, metric, data_obj, is_proportion in [('SELECTION-', 'MS*', sim_res, True), 
-                                 ('SEL-UNUSED-', 'Proportion of Mutant Analysed' if Use_proportion_analysed_mutants else '# Mutant Analysed', \
-                                                                                    mutant_analysis_cost_obj, Use_proportion_analysed_mutants), 
-                                 ('SEL-UNUSED', '# Tests Executed', test_execution_cost_obj, False), 
-                                 ('SEL-USED-', 'Proportion of Equivalent Mutant' if Use_proportion_analysed_mutants else '# Equivalent Mutants', \
-                                                                                    equivalent_mutants_obj, Use_proportion_analysed_mutants), 
+                                 #('SEL-UNUSED-', 'Proportion of Mutant Analysed' if Use_proportion_analysed_mutants else '# Mutant Analysed', \
+                                 #                                                   mutant_analysis_cost_obj, Use_proportion_analysed_mutants), 
+                                 #('SEL-UNUSED', '# Tests Executed', test_execution_cost_obj, False), 
+                                 ('SEL-USED-', 'Proportion of Equivalent Mutant', equivalent_mutants_obj, True), 
                                  ('SELECTION-', 'Selection Size for Same MS*', other_sim_res, True), 
                                  ('ANALYSIS-', 'MS*', anal_sim_res, True), 
                                  ('ANALYSIS-', 'Analysed Mutants for Same MS*', anal_other_sim_res, Use_proportion_analysed_mutants), 
@@ -488,9 +487,10 @@ def main():
                                                                 metric.replace('#', 'num').replace(' ', '_').replace('MS*', 'SubsumingMS') + '-' + \
                                                                 "boxplot_all-{}".format(("pred_size" if fixed_size is None else fixed_size)))
                     diff_inc = list(cost_diff_df.groupby(['Program']).median().sort_values(by=['Diff']).index)
-                    ax = sns.boxplot(x="Program", y="Diff", data=cost_diff_df, order=diff_inc, palette="Set3", medianprops={'linewidth':4})
+                    ax = sns.boxplot(x="Program", y="Diff", data=cost_diff_df, order=diff_inc, palette="light:b", medianprops={'linewidth':2})
                     plot.plt.title(" - ".join([PRED_MACHINE_TRANSLATION, other_t]), fontdict={'weight':'bold'}, fontsize=18)
                     #plot.plt.yticks(rotation=30, va='top', fontsize=18-5)
+                    plot.plt.xticks(rotation=30, ha='right')
                     plot.plt.xlabel("Program", fontsize=18)
                     plot.plt.ylabel("Difference of "+metric, fontsize=18)
                     plot.plt.tight_layout()
@@ -594,10 +594,9 @@ def simulation(num_repet, test_list, mutant_list, machine_translation_mutant_lis
                         
                 if Use_proportion_analysed_mutants:
                     mutant_analysis_cost[techname].append(analysed_muts_num * 1.0 / len(mutant_list))
-                    equivalent_mutants[techname].append(equivalent_muts_num * 1.0 / len(mutant_list))
                 else:
                     mutant_analysis_cost[techname].append(analysed_muts_num)
-                    equivalent_mutants[techname].append(equivalent_muts_num)
+                equivalent_mutants[techname].append(equivalent_muts_num * 1.0 / len(selection_size))
                 test_execution_cost[techname].append(exec_tests_num)
                         
 
