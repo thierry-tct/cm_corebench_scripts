@@ -490,7 +490,7 @@ def main():
                                                                 metric.replace('#', 'num').replace(' ', '_').replace('MS*', 'SubsumingMS') + '-' + \
                                                                 "boxplot_all-{}".format(("pred_size" if fixed_size is None else fixed_size)))
                     diff_inc = list(cost_diff_df.groupby(['Program']).median().sort_values(by=['Diff']).index)
-                    ax = sns.boxplot(x="Program", y="Diff", data=cost_diff_df, order=diff_inc, palette="light:b", medianprops={'linewidth':2})
+                    ax = sns.boxplot(x="Program", y="Diff", data=cost_diff_df, order=diff_inc, palette="Blues_r", medianprops={'linewidth':2})
                     plot.plt.title(" - ".join([PRED_MACHINE_TRANSLATION, other_t]), fontdict={'weight':'bold'}, fontsize=18)
                     #plot.plt.yticks(rotation=30, va='top', fontsize=18-5)
                     plot.plt.xticks(rotation=30, ha='right')
