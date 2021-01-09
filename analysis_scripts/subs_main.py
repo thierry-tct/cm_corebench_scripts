@@ -413,7 +413,7 @@ def main():
             saved_size_obj = {
                               'PREDICTED_SIZES': proj2used_size,
                               'TOTAL_SIZES': {p: len(am) for p, am in all_mutants.items()},
-                              'SUBSUMING_SIZES': {p: len(sm) for p, sm in mutant_to_subs_cluster.items()}
+                              'SUBSUMING_SIZES': {p: len(sm) for p, sm in mutant_to_subs_cluster.items()},
                               'EQUIVALENT_SIZES': {p: len([m for m in muts_ if (m in mutants_to_killingtests and len(mutants_to_killingtests[m]) > 0)]) \
                                                    for p,muts_ in all_mutants.items()}
                              }
