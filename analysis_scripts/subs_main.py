@@ -596,7 +596,7 @@ def simulation(num_repet, test_list, mutant_list, machine_translation_mutant_lis
                     mutant_analysis_cost[techname].append(analysed_muts_num * 1.0 / len(mutant_list))
                 else:
                     mutant_analysis_cost[techname].append(analysed_muts_num)
-                equivalent_mutants[techname].append(equivalent_muts_num * 1.0 / len(selection_size))
+                equivalent_mutants[techname].append(equivalent_muts_num * 1.0 / selection_size)
                 test_execution_cost[techname].append(exec_tests_num)
                         
 
