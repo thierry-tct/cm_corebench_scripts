@@ -414,13 +414,16 @@ def main():
                               'PREDICTED_SIZES': proj2used_size,
                               'TOTAL_SIZES': {p: len(am) for p, am in all_mutants.items()},
                               'SUBSUMING_SIZES': {p: len(sm) for p, sm in mutant_to_subs_cluster.items()}
+                              'EQUIVALENT_SIZES': {p: len([m for m in muts_ if (m in mutants_to_killingtests and len(mutants_to_killingtests[m]) > 0)]) \
+                                                   for p,muts_ in all_mutants.items()}
                              }
             size_file_prefix = os.path.join(out_folder, "used_fixed_size-{}".format("pred_size" if fixed_size is None else fixed_size))
             subs_load.common_fs.dumpJSON(saved_size_obj, size_file_prefix+'.json' , pretty=True)
-            size_prop = {'PREDICTED_SIZES': [], 'SUBSUMING_SIZES': []}
+            size_prop = {'PREDICTED_SIZES': [], 'SUBSUMING_SIZES': [], 'EQUIVALENT_SIZES': []}
             for proj in saved_size_obj['PREDICTED_SIZES']:
                 size_prop['PREDICTED_SIZES'].append(saved_size_obj['PREDICTED_SIZES'][proj] * 1.0 / saved_size_obj['TOTAL_SIZES'][proj])
                 size_prop['SUBSUMING_SIZES'].append(saved_size_obj['SUBSUMING_SIZES'][proj] * 1.0 / saved_size_obj['TOTAL_SIZES'][proj])
+                size_prop['EQUIVALENT_SIZES'].append(saved_size_obj['EQUIVALENT_SIZES'][proj] * 1.0 / saved_size_obj['TOTAL_SIZES'][proj])
             plot.plotBoxesHorizontal(size_prop, list(size_prop), size_file_prefix, plot.colors_bw, ylabel="Mutants Proportion" , yticks_range=plot.np.arange(0,1.01,0.2))
             
         print("# Plotting ...")
