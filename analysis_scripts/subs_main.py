@@ -54,10 +54,13 @@ def a12(lst1,lst2,pairwise=False, rev=True):
     return (more + 0.5*same)  / (len(lst1) if pairwise else len(lst1)*len(lst2))
 
 def wilcoxon(list1, list2, isranksum=True):
-    if isranksum:
-        p_value = scipy.stats.ranksums(list1, list2)
-    else:
-        p_value = scipy.stats.wilcoxon(list1, list2)
+    try:
+        if isranksum:
+            p_value = scipy.stats.ranksums(list1, list2)
+        else:
+            p_value = scipy.stats.wilcoxon(list1, list2)
+    except ValueError a ve:
+        p_value = str(ve)
     return p_value
 #~ def wilcoxon()
 
