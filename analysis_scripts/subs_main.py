@@ -59,7 +59,7 @@ def wilcoxon(list1, list2, isranksum=True):
             p_value = scipy.stats.ranksums(list1, list2)
         else:
             p_value = scipy.stats.wilcoxon(list1, list2)
-    except ValueError a ve:
+    except ValueError as ve:
         p_value = str(ve)
     return p_value
 #~ def wilcoxon()
