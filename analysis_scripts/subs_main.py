@@ -340,6 +340,7 @@ def main():
         anal_other_sim_res = {}
         testexec_sim_res = {}
         test_exec_other_sim_res = {}
+        analysed_equivalent_sim_res = {}
         mutant_analysis_cost_obj = {}
         test_execution_cost_obj = {}
         equivalent_mutants_obj = {}
@@ -381,6 +382,7 @@ def main():
             mt_sMS2testexec = {}
             mt_analysed2sMS = {}
             mt_testexec2sMS = {}
+            mt_analysed2equivalent = {}
             for pos,sMS in enumerate(sim_res[proj][PRED_MACHINE_TRANSLATION]):
                 anal_here = mutant_analysis_cost_obj[proj][PRED_MACHINE_TRANSLATION][pos]
                 testexec_here = test_execution_cost_obj[proj][PRED_MACHINE_TRANSLATION][pos]
@@ -390,6 +392,7 @@ def main():
                     mt_sMS2testexec[sMS] = []
                 if anal_here not in mt_analysed2sMS:
                     mt_analysed2sMS[anal_here] = []
+                    mt_analysed2equivalent[anal_here] = []
                 if testexec_here not in mt_testexec2sMS:
                     mt_testexec2sMS[testexec_here] = []
                 machine_translation_sMS2size[sMS].append(used_fixed_size)
@@ -397,8 +400,10 @@ def main():
                 mt_sMS2testexec[sMS].append(testexec_here)
                 mt_analysed2sMS[anal_here].append(sMS)
                 mt_testexec2sMS[testexec_here].append(sMS)
+                mt_analysed2equivalent[anal_here].append(equivalent_mutants_obj[proj][PRED_MACHINE_TRANSLATION][pos])
             other_sim_res[proj], anal_sim_res[proj], anal_other_sim_res[proj], \
-                       testexec_sim_res[proj], test_exec_other_sim_res[proj] = additional_simulation (SUB_REPET_NUM, all_tests[proj], \
+                       testexec_sim_res[proj], test_exec_other_sim_res[proj], \
+                                            analysed_equivalent_sim_res[proj] = additional_simulation (SUB_REPET_NUM, all_tests[proj], \
                                                                                                         all_mutants[proj], \
                                                                                                         decision_trees_mutants[proj], \
                                                                                                         tests_to_killed_mutants[proj], \
@@ -409,6 +414,7 @@ def main():
                                                                                                         mt_sMS2testexec=mt_sMS2testexec, \
                                                                                                         mt_analysed2sMS=mt_analysed2sMS, \
                                                                                                         mt_testexec2sMS=mt_testexec2sMS, \
+                                                                                                        mt_analysed2equivalent=mt_analysed2equivalent, \
                                                                                                         parallel_count=16)
 
         # Store sizes
@@ -434,12 +440,14 @@ def main():
                                  #('SEL-UNUSED-', 'Proportion of Mutant Analysed' if Use_proportion_analysed_mutants else '# Mutant Analysed', \
                                  #                                                   mutant_analysis_cost_obj, Use_proportion_analysed_mutants), 
                                  #('SEL-UNUSED', '# Tests Executed', test_execution_cost_obj, False), 
-                                 ('SEL-USED-', 'Proportion of Equivalent Mutant', equivalent_mutants_obj, True), 
+                                 ('SELECTEDEQUIVALENT-', 'Proportion of Equivalent Mutant', equivalent_mutants_obj, True), 
                                  ('SELECTION-', 'Selection Size for Same MS*', other_sim_res, True), 
                                  ('ANALYSIS-', 'MS*', anal_sim_res, True), 
                                  ('ANALYSIS-', 'Analysed Mutants for Same MS*', anal_other_sim_res, Use_proportion_analysed_mutants), 
                                  ('TESTEXECUTION-', 'MS*', testexec_sim_res, True), 
-                                 ('TESTEXECUTION-', 'Test Execution for same MS*', test_exec_other_sim_res, False)]:
+                                 ('TESTEXECUTION-', 'Test Execution for same MS*', test_exec_other_sim_res, False),
+                                 ('ANALYSEDEQUIVALENT-', 'Equivalent Mutants for same Analysed', analysed_equivalent_sim_res, Use_proportion_analysed_mutants)]:
+            
             # Plot box plot
             print ("@Plot: Plotting {} - {} ...".format(fname_prefix, metric))
             image_file = os.path.join(out_folder, fname_prefix + metric.replace('#', 'num').replace(' ', '_').replace('MS*', 'SubsumingMS') + '-' + \
@@ -629,6 +637,9 @@ def additional_sub_parallel (in_data_valuerange_args_kwargs):
     sMS2testexec = {RANDOM: {}, PRED_DECISION_TREES: {}}
     analysed2sMS = {RANDOM: {}, PRED_DECISION_TREES: {}}
     testexec2sMS = {RANDOM: {}, PRED_DECISION_TREES: {}}
+    
+    analysed2equivalent = {RANDOM: {}, PRED_DECISION_TREES: {}}
+    
     multi_sizes_bar = tqdm.tqdm(in_data_valuerange_args_kwargs[0], desc='Multiple Sizes', leave=False)
     args = in_data_valuerange_args_kwargs[1]
     kwargs = dict(in_data_valuerange_args_kwargs[2]) # make a new copy
@@ -647,12 +658,14 @@ def additional_sub_parallel (in_data_valuerange_args_kwargs):
                 sMS2testexec[tech][sMS].append(test_execution_cost[tech][pos])
                 if mutant_analysis_cost[tech][pos] not in analysed2sMS:
                     analysed2sMS[tech][mutant_analysis_cost[tech][pos]] = []
+                    analysed2equivalent[tech][mutant_analysis_cost[tech][pos]] = []
                 analysed2sMS[tech][mutant_analysis_cost[tech][pos]].append(sMS)
+                analysed2equivalent[tech][mutant_analysis_cost[tech][pos]].append(equivalent_mutants[tech][pos])
                 if test_execution_cost[tech][pos] not in testexec2sMS:
                     testexec2sMS[tech][test_execution_cost[tech][pos]] = []
                 testexec2sMS[tech][test_execution_cost[tech][pos]].append(sMS)
             
-    return sMS2selsize, sMS2analysed, sMS2testexec, analysed2sMS, testexec2sMS
+    return sMS2selsize, sMS2analysed, sMS2testexec, analysed2sMS, testexec2sMS, analysed2equivalent
 #~ def additional_sub_parallel()
 
 def additional_simulation (num_sub_repet, test_list, mutant_list, 
@@ -663,6 +676,7 @@ def additional_simulation (num_sub_repet, test_list, mutant_list,
                               mt_sMS2testexec=None, \
                               mt_analysed2sMS=None, \
                               mt_testexec2sMS=None, \
+                              mt_analysed2equivalent=None, \
                               use_raw_sel_number=False, parallel_count=1):
     
     assert parallel_count > 0, "invalid parallel_count"
@@ -685,15 +699,18 @@ def additional_simulation (num_sub_repet, test_list, mutant_list,
     sMS2testexec = {RANDOM: {}, PRED_DECISION_TREES: {}}
     analysed2sMS = {RANDOM: {}, PRED_DECISION_TREES: {}}
     testexec2sMS = {RANDOM: {}, PRED_DECISION_TREES: {}}
+    
+    analysed2equivalent = {RANDOM: {}, PRED_DECISION_TREES: {}}
+    
     for res_tmp in map_list:
-        for partial, aggregated in zip(res_tmp, [sMS2selsize, sMS2analysed, sMS2testexec, analysed2sMS, testexec2sMS]):
+        for partial, aggregated in zip(res_tmp, [sMS2selsize, sMS2analysed, sMS2testexec, analysed2sMS, testexec2sMS, analysed2equivalent]):
             for tech, tdat in partial.items():
                 for metric, ss in tdat.items():
                     if metric not in aggregated[tech]:
                         aggregated[tech][metric] = []
                     aggregated[tech][metric] += ss
             
-    #for aggregated in [sMS2selsize, sMS2analysed, sMS2testexec, analysed2sMS, testexec2sMS]:
+    #for aggregated in [sMS2selsize, sMS2analysed, sMS2testexec, analysed2sMS, testexec2sMS, analysed2equivalent]:
     #    for tech in aggregated:
     #        for sMS in aggregated[tech]:
     #            aggregated[tech][sMS] = list (aggregated[tech][sMS])
@@ -703,6 +720,8 @@ def additional_simulation (num_sub_repet, test_list, mutant_list,
     sorted_keys_sMS2testexec = {RANDOM: sorted(list(sMS2testexec[RANDOM])), PRED_DECISION_TREES: sorted(list(sMS2testexec[PRED_DECISION_TREES]))}
     sorted_keys_analysed2sMS = {RANDOM: sorted(list(analysed2sMS[RANDOM])), PRED_DECISION_TREES: sorted(list(analysed2sMS[PRED_DECISION_TREES]))}
     sorted_keys_testexec2sMS = {RANDOM: sorted(list(testexec2sMS[RANDOM])), PRED_DECISION_TREES: sorted(list(testexec2sMS[PRED_DECISION_TREES]))}
+    
+    sorted_keys_analysed2equivalent = {RANDOM: sorted(list(analysed2equivalent[RANDOM])), PRED_DECISION_TREES: sorted(list(analysed2equivalent[PRED_DECISION_TREES]))}
     
     def get_other_values (in_sMS, mt_size_list, dict_data, sorted_keys, lowerbound=True):
         if lowerbound:
@@ -727,12 +746,15 @@ def additional_simulation (num_sub_repet, test_list, mutant_list,
     testexec_sMS = {RANDOM: [], PRED_DECISION_TREES: [], PRED_MACHINE_TRANSLATION: []}
     testexec = {RANDOM: [], PRED_DECISION_TREES: [], PRED_MACHINE_TRANSLATION: []}
     
+    analysed_equivalent = {RANDOM: [], PRED_DECISION_TREES: [], PRED_MACHINE_TRANSLATION: []}
+    
     for out_obj, mt_data, cmp_data, cmp_sorted_keys, is_mutant_proportion, lowerbound in [
                         (sizes, machine_translation_sMS2size, sMS2selsize, sorted_keys_sMS2size, (not use_raw_sel_number), True),
                         (analysed, mt_sMS2analysed, sMS2analysed, sorted_keys_sMS2analysed, Use_proportion_analysed_mutants, True),
                         (testexec, mt_sMS2testexec, sMS2testexec, sorted_keys_sMS2testexec, False, True),
                         (analysed_sMS, mt_analysed2sMS, analysed2sMS, sorted_keys_analysed2sMS, False, False),
-                        (testexec_sMS, mt_testexec2sMS, testexec2sMS, sorted_keys_testexec2sMS, False, False),                        
+                        (testexec_sMS, mt_testexec2sMS, testexec2sMS, sorted_keys_testexec2sMS, False, False),    
+                        (analysed_equivalent, mt_analysed2equivalent, analysed2equivalent, sorted_keys_analysed2equivalent, Use_proportion_analysed_mutants, True),
                                                                     ]:    
         for mt_key, mt_val_list in mt_data.items():
             rand_vals, dt_vals, mt_vals = get_other_values (mt_key, mt_val_list, cmp_data, cmp_sorted_keys, lowerbound=lowerbound)
@@ -745,7 +767,7 @@ def additional_simulation (num_sub_repet, test_list, mutant_list,
                 out_obj[PRED_DECISION_TREES] += dt_vals
                 out_obj[RANDOM] += rand_vals
             
-    return sizes, analysed_sMS, analysed, testexec_sMS, testexec
+    return sizes, analysed_sMS, analysed, testexec_sMS, testexec, analysed_equivalent
 #~ def additional_simulation ()
     
 def stat_test (left_FR, left_rMS, left_name, right_FR, right_rMS, right_name):
