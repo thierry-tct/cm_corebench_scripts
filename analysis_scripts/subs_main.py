@@ -423,7 +423,7 @@ def main():
                               'PREDICTED_SIZES': proj2used_size,
                               'TOTAL_SIZES': {p: len(am) for p, am in all_mutants.items()},
                               'SUBSUMING_SIZES': {p: len(sm) for p, sm in mutant_to_subs_cluster.items()},
-                              'EQUIVALENT_SIZES': {p: len([m for m in muts_ if (m in mutants_to_killingtests[p] and len(mutants_to_killingtests[p][m]) > 0)]) \
+                              'EQUIVALENT_SIZES': {p: len([m for m in muts_ if (m not in mutants_to_killingtests[p] or len(mutants_to_killingtests[p][m]) == 0)]) \
                                                    for p,muts_ in all_mutants.items()}
                              }
             size_file_prefix = os.path.join(out_folder, "used_fixed_size-{}".format("pred_size" if fixed_size is None else fixed_size))
