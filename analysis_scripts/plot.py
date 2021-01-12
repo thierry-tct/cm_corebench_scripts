@@ -124,8 +124,8 @@ def plot_Box_Grouped(groupedData, imagefile, colors_bw, ylabel, selectGroups=Non
     return medianValues
 #~ def plot_Box_Grouped()
 
-def plotBoxes(plotobj, order, imagefile, colors_bw, ylabel="APFD", yticks_range=range(0,101,20), fontsize=26, title=None):
-    plt.figure(figsize=(16, 8))
+def plotBoxes(plotobj, order, imagefile, colors_bw, ylabel="APFD", yticks_range=range(0,101,20), fontsize=26, title=None, narrow=False):
+    plt.figure(figsize=(16, 8) if not narrow else (4, 16))
     plt.gcf().subplots_adjust(bottom=0.27)
     #plt.style.use(u'ggplot')
     sns.set_style("ticks")
