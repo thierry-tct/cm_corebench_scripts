@@ -344,6 +344,7 @@ def main():
         mutant_analysis_cost_obj = {}
         test_execution_cost_obj = {}
         equivalent_mutants_obj = {}
+        selected_equivalent_mutants = {}
         tq_data = tqdm.tqdm(list(all_tests))
         for proj in tq_data:
             tq_data.set_description("Simulating for {} ...".format(proj))
@@ -375,6 +376,9 @@ def main():
                                                                              tests_to_killed_subs_cluster[proj], \
                                                                              mutants_to_killingtests[proj], \
                                                                              fixed_size=used_fixed_size)
+            selected_equivalent_mutants[proj] = {}
+            for tech, tdat in equivalent_mutants_obj[proj].items():
+                selected_equivalent_mutants[proj][tech] = [v * 1.0 / used_fixed_size for v in tdat]
             
             print ("## Doing additional sim ...")
             machine_translation_sMS2size = {}
@@ -440,7 +444,7 @@ def main():
                                  #('SEL-UNUSED-', 'Proportion of Mutant Analysed' if Use_proportion_analysed_mutants else '# Mutant Analysed', \
                                  #                                                   mutant_analysis_cost_obj, Use_proportion_analysed_mutants), 
                                  #('SEL-UNUSED', '# Tests Executed', test_execution_cost_obj, False), 
-                                 ('SELECTEDEQUIVALENT-', 'Proportion of Equivalent Mutant', equivalent_mutants_obj, True), 
+                                 ('SELECTEDEQUIVALENT-', 'Proportion of Equivalent Mutant', selected_equivalent_mutants, True), 
                                  ('SELECTION-', 'Selection Size for Same MS*', other_sim_res, True), 
                                  ('ANALYSIS-', 'MS*', anal_sim_res, True), 
                                  ('ANALYSIS-', 'Analysed Mutants for Same MS*', anal_other_sim_res, Use_proportion_analysed_mutants), 
@@ -613,7 +617,7 @@ def simulation(num_repet, test_list, mutant_list, machine_translation_mutant_lis
                     mutant_analysis_cost[techname].append(analysed_muts_num * 1.0 / len(mutant_list))
                 else:
                     mutant_analysis_cost[techname].append(analysed_muts_num)
-                equivalent_mutants[techname].append(equivalent_muts_num * 1.0 / selection_size)
+                equivalent_mutants[techname].append(equivalent_muts_num)
                 test_execution_cost[techname].append(exec_tests_num)
                         
 
