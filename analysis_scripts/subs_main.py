@@ -28,9 +28,11 @@ NUM_REPETITIONS = 1000 #1000
 
 SUB_REPET_NUM = 1
 
-RANDOM = "RANDOM"
-PRED_MACHINE_TRANSLATION = "MACHINE-TRANSLATION"
-PRED_DECISION_TREES = "DECISION-TREES"
+NARROW_PLOT = True
+
+RANDOM = "RANDOM" if not NARROW_PLOT else 'RND'
+PRED_MACHINE_TRANSLATION = "MACHINE-TRANSLATION" if not NARROW_PLOT else 'MT'
+PRED_DECISION_TREES = "DECISION-TREES" if not NARROW_PLOT else 'DT'
 
 Use_proportion_analysed_mutants = False
 
@@ -437,7 +439,7 @@ def main():
                 size_prop['PREDICTED_SIZES'].append(saved_size_obj['PREDICTED_SIZES'][proj] * 1.0 / saved_size_obj['TOTAL_SIZES'][proj])
                 size_prop['SUBSUMING_SIZES'].append(saved_size_obj['SUBSUMING_SIZES'][proj] * 1.0 / saved_size_obj['TOTAL_SIZES'][proj])
                 size_prop['EQUIVALENT_SIZES'].append(saved_size_obj['EQUIVALENT_SIZES'][proj] * 1.0 / saved_size_obj['TOTAL_SIZES'][proj])
-            plot.plotBoxes(size_prop, list(size_prop), size_file_prefix, plot.colors_bw, ylabel="Mutants Proportion" , yticks_range=plot.np.arange(0,1.01,0.2))
+            plot.plotBoxes(size_prop, list(size_prop), size_file_prefix, plot.colors_bw, ylabel="Mutants Proportion" , yticks_range=plot.np.arange(0,1.01,0.2), narrow=NARROW_PLOT)
             
         print("# Plotting ...")
         for fname_prefix, metric, data_obj, is_proportion in [('SELECTION-', 'MS*', sim_res, True), 
@@ -495,7 +497,7 @@ def main():
                 plot.plt.savefig(image_file+".pdf", format='pdf') #, bbox_extra_artists=(lgd,), bbox_inches='tight')
                 plot.plt.close('all')
 
-                median_list = plot.plotBoxes(merged_dat, order, image_file_agg, plot.colors_bw, ylabel=metric, yticks_range=yticks_range)
+                median_list = plot.plotBoxes(merged_dat, order, image_file_agg, plot.colors_bw, ylabel=metric, yticks_range=yticks_range, narrow=NARROW_PLOT)
                 subs_load.common_fs.dumpJSON({order[i]: median_list[i] for i in range(len(median_list))}, median_file_agg, pretty=True)
                 
                 # Stat_test agg
