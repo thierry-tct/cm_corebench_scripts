@@ -441,6 +441,8 @@ def main():
                 size_prop['EQUIVALENT_SIZES'].append(saved_size_obj['EQUIVALENT_SIZES'][proj] * 1.0 / saved_size_obj['TOTAL_SIZES'][proj])
             plot.plotBoxes(size_prop, list(size_prop), size_file_prefix, plot.colors_bw, ylabel="Mutants Proportion" , yticks_range=plot.np.arange(0,1.01,0.2), narrow=NARROW_PLOT)
             
+            # TODO: get and save total stats (#mutants, #tests, #subsuming, #equivalen)
+            
         print("# Plotting ...")
         for fname_prefix, metric, data_obj, is_proportion in [('SELECTION-', 'MS*', sim_res, True), 
                                  #('SEL-UNUSED-', 'Proportion of Mutant Analysed' if Use_proportion_analysed_mutants else '# Mutant Analysed', \
