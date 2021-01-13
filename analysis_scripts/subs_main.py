@@ -441,7 +441,15 @@ def main():
                 size_prop['EQUIVALENT_SIZES'].append(saved_size_obj['EQUIVALENT_SIZES'][proj] * 1.0 / saved_size_obj['TOTAL_SIZES'][proj])
             plot.plotBoxes(size_prop, list(size_prop), size_file_prefix, plot.colors_bw, ylabel="Mutants Proportion" , yticks_range=plot.np.arange(0,1.01,0.2), narrow=NARROW_PLOT)
             
-            # TODO: get and save total stats (#mutants, #tests, #subsuming, #equivalen)
+            # TODO: get and save total infos (#mutants, #tests, #subsuming, #equivalent)
+            infos = {}
+            infos['#Mutants'] = sum(len(p_muts) for _,p_muts in all_mutants.items())
+            infos['#Tests'] = sum(len(p_t) for _,p_t in all_tests.items())
+            infos['#subsuming'] = sum(len(p_s) for _,p_s in saved_size_obj['SUBSUMING_SIZES'].items())
+            infos['#Test-Equivalent'] = sum(len(p_e) for _,p_e in saved_size_obj['EQUIVALENT_SIZES'].items())
+            infos['#{}-Predicted'.format(PRED_MACHINE_TRANSLATION)] = sum(len(p_mt) for _,p_mt in saved_size_obj['PREDICTED_SIZES'].items())
+            infos_file_prefix = os.path.join(out_folder, "infos-{}".format("pred_size" if fixed_size is None else fixed_size))
+            subs_load.common_fs.dumpJSON(infos, infos_file_prefix+'.json' , pretty=True)
             
         print("# Plotting ...")
         for fname_prefix, metric, data_obj, is_proportion in [('SELECTION-', 'MS*', sim_res, True), 
