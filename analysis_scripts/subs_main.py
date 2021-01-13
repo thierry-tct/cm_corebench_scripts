@@ -445,9 +445,9 @@ def main():
             infos = {}
             infos['#Mutants'] = sum(len(p_muts) for _,p_muts in all_mutants.items())
             infos['#Tests'] = sum(len(p_t) for _,p_t in all_tests.items())
-            infos['#subsuming'] = sum(len(p_s) for _,p_s in saved_size_obj['SUBSUMING_SIZES'].items())
-            infos['#Test-Equivalent'] = sum(len(p_e) for _,p_e in saved_size_obj['EQUIVALENT_SIZES'].items())
-            infos['#{}-Predicted'.format(PRED_MACHINE_TRANSLATION)] = sum(len(p_mt) for _,p_mt in saved_size_obj['PREDICTED_SIZES'].items())
+            infos['#subsuming'] = sum(p_s for _,p_s in saved_size_obj['SUBSUMING_SIZES'].items())
+            infos['#Test-Equivalent'] = sum(p_e for _,p_e in saved_size_obj['EQUIVALENT_SIZES'].items())
+            infos['#{}-Predicted'.format(PRED_MACHINE_TRANSLATION)] = sum(p_mt for _,p_mt in saved_size_obj['PREDICTED_SIZES'].items())
             infos_file_prefix = os.path.join(out_folder, "infos-{}".format("pred_size" if fixed_size is None else fixed_size))
             subs_load.common_fs.dumpJSON(infos, infos_file_prefix+'.json' , pretty=True)
             
